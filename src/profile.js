@@ -1,5 +1,5 @@
 const STORAGE_KEY = "little-lantern-player-v1";
-const DEFAULTS = { name: "Little learner", color: "#e878a1", appearance: { characterId: "sakura-street", outfitId: "teal-traveler", hairColor: "espresso", skinTone: "warm", eyeColor: "green", accessoryId: "signature" }, xp: 0, coins: 0, lessons: 0, achievements: [] };
+const DEFAULTS = { name: "Little learner", color: "#e878a1", appearance: { characterId: "sakura-street", outfitId: "teal-traveler", hairColor: "espresso", skinTone: "warm", eyeColor: "green", accessoryId: "signature" }, xp: 0, coins: 0, lessons: 0, studyStreak: 0, lastStudyDate: null, achievements: [] };
 
 function read() {
   try {
@@ -39,6 +39,12 @@ function render() {
   document.querySelectorAll("[data-profile-xp]").forEach(el => { el.textContent = profile.xp; });
   document.querySelectorAll("[data-profile-coins]").forEach(el => { el.textContent = profile.coins; });
   document.querySelectorAll("[data-profile-lessons]").forEach(el => { el.textContent = profile.lessons; });
+  const streakTier = profile.studyStreak >= 500 ? "diamond" : profile.studyStreak >= 300 ? "ruby" : "gold";
+  document.querySelectorAll("[data-study-streak]").forEach(el => {
+    el.textContent = profile.studyStreak;
+    el.dataset.streakTier = streakTier;
+    el.setAttribute("aria-label", `${profile.studyStreak} study day${profile.studyStreak === 1 ? "" : "s"}`);
+  });
   document.querySelectorAll("[data-avatar-initial]").forEach(el => { el.textContent = [...profile.name][0] || "小"; el.style.backgroundColor = profile.color; });
   document.querySelectorAll(".top-avatar,.avatar").forEach(el => { el.textContent = [...profile.name][0] || "小"; el.style.backgroundColor = `${profile.color}33`; });
   document.querySelectorAll("[data-avatar-color]").forEach(el => el.classList.toggle("selected", el.dataset.avatarColor === profile.color));
@@ -52,6 +58,14 @@ function render() {
 export function getProfile() { return { ...profile, level: levelFor(profile.xp), title: titleFor(levelFor(profile.xp)) }; }
 
 export function rewardStudyAnswer(correct) {
+  // This is a saved cumulative study-day streak: breaks never erase progress.
+  // Multiple answers on the same local calendar day count only once.
+  const date = new Date();
+  const today = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  if (profile.lastStudyDate !== today) {
+    profile.studyStreak = (Number(profile.studyStreak) || 0) + 1;
+    profile.lastStudyDate = today;
+  }
   profile.xp += correct ? 10 : 3;
   if (correct) profile.coins += 2;
   profile.lessons += 1;
