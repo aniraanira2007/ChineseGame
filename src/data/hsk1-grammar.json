@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "level": 1,
+  "count": 45,
+  "source": "Official HSK 3.0 syllabus (November 2025); grammar explanations/examples curated by Gushi.",
+  "attribution": "HSK 1 grammar syllabus by Gushi (https://gushichinese.com/hsk-3.0/grammar/1), CC BY-SA 4.0. Derived data remains CC BY-SA 4.0.",
+  "points": [
+    {
+      "point": "前缀“小-”",
+      "pattern": "",
+      "category": "Word parts",
+      "explanation": "The prefix 小- before a surname or given name makes a friendly, familiar form of address.",
+      "exampleChinese": "小王是我的同学。",
+      "exampleEnglish": "Xiao Wang is my classmate."
+    },
+    {
+      "point": "前缀“第-”",
+      "pattern": "第＋数词",
+      "category": "Word parts",
+      "explanation": "The prefix 第- before a numeral forms ordinal numbers: 第一 first, 第二 second.",
+      "exampleChinese": "今天是我上班的第一天。",
+      "exampleEnglish": "Today is my first day at work."
+    },
+    {
+      "point": "后缀“-们”",
+      "pattern": "",
+      "category": "Word parts",
+      "explanation": "The suffix -们 marks plural on pronouns and words for people: 我们, 老师们.",
+      "exampleChinese": "我们是学生。",
+      "exampleEnglish": "We are students."
+    },
+    {
+      "point": "后缀“-边”",
+      "pattern": "",
+      "category": "Word parts",
+      "explanation": "The suffix -边 attaches to direction words to form location words: 上边, 前边, 外边.",
+      "exampleChinese": "书在桌子上边。",
+      "exampleEnglish": "The book is on top of the table."
+    },
+    {
+      "point": "方位名词（上、下、里、外、前、后）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Locality nouns like 上, 下, 里, 外 follow a noun to express “on / under / inside / outside”.",
+      "exampleChinese": "我的书在家里。",
+      "exampleEnglish": "My book is at home."
+    },
+    {
+      "point": "能愿动词“会、能”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The modal verbs 会 and 能 before a verb express learned ability (会) or capability/possibility (能).",
+      "exampleChinese": "我会说汉语。",
+      "exampleEnglish": "I can speak Chinese."
+    },
+    {
+      "point": "能愿动词“想、要”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The modal verbs 想 and 要 before a verb express wanting or intending to do something.",
+      "exampleChinese": "我想喝茶。",
+      "exampleEnglish": "I want to drink tea."
+    },
+    {
+      "point": "能愿动词“可以”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The modal verb 可以 expresses permission or possibility: “may / be allowed to”.",
+      "exampleChinese": "你可以坐这儿。",
+      "exampleEnglish": "You may sit here."
+    },
+    {
+      "point": "离合词（睡觉、说话、上课……）",
+      "pattern": "睡觉 → 睡（一个好）觉",
+      "category": "Word classes",
+      "explanation": "Separable verbs like 睡觉, 说话, 上课 are verb+object compounds that act as one verb, and come apart to take 了 or a measure phrase in the middle.",
+      "exampleChinese": "我晚上十点睡觉。",
+      "exampleEnglish": "I go to bed at ten in the evening."
+    },
+    {
+      "point": "疑问代词（什么、谁、哪儿、几、多少……）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Question words like 什么, 谁, 哪儿 stand in the sentence position of the thing being asked about.",
+      "exampleChinese": "这是什么？",
+      "exampleEnglish": "What is this?"
+    },
+    {
+      "point": "人称代词（我、你、您、他、她、大家……）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Personal pronouns refer to people; 您 is the polite form of 你.",
+      "exampleChinese": "您好，王老师！",
+      "exampleEnglish": "Hello, Teacher Wang! (polite)"
+    },
+    {
+      "point": "指示代词（这、那、这儿、那儿、这些……）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Demonstratives 这 “this” and 那 “that” point to people, things, and places.",
+      "exampleChinese": "这是我的书。",
+      "exampleEnglish": "This is my book."
+    },
+    {
+      "point": "数词（一……十、百、千、半、二/两）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Numerals count things; before a measure word, “two” is 两, not 二.",
+      "exampleChinese": "我有两个哥哥。",
+      "exampleEnglish": "I have two older brothers."
+    },
+    {
+      "point": "名量词（本、个、家、口、块、件、只、元；杯）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "A measure word must stand between a number or demonstrative and its noun; 个 is the most general one.",
+      "exampleChinese": "我买了三个苹果。",
+      "exampleEnglish": "I bought three apples."
+    },
+    {
+      "point": "时量词（日、号、岁、点、分、年、天）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Time measure words count dates, ages, and clock time; 岁 counts years of age.",
+      "exampleChinese": "你儿子几岁？",
+      "exampleEnglish": "How old is your son?"
+    },
+    {
+      "point": "程度副词“很、太、非常、真、有点儿”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Degree adverbs stand before adjectives; a plain adjective predicate usually takes 很.",
+      "exampleChinese": "我今天很忙。",
+      "exampleEnglish": "I am very busy today."
+    },
+    {
+      "point": "范围副词“都”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The adverb 都 before the verb means “all / both”, covering everything mentioned before it.",
+      "exampleChinese": "我们都是学生。",
+      "exampleEnglish": "We are all students."
+    },
+    {
+      "point": "时间副词“在、正在”",
+      "pattern": "（正）在＋动词（＋呢）",
+      "category": "Word classes",
+      "explanation": "在 or 正在 before the verb marks an action in progress, often with 呢 at the end.",
+      "exampleChinese": "他在吃饭。",
+      "exampleEnglish": "He is eating."
+    },
+    {
+      "point": "频率副词“再”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The adverb 再 before a verb means “again / once more”, for a repeated future action.",
+      "exampleChinese": "你明天再来吧。",
+      "exampleEnglish": "Come again tomorrow."
+    },
+    {
+      "point": "关联副词“也、还”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The adverb 也 before the verb means “also / too”, linking a second parallel statement.",
+      "exampleChinese": "我是学生，他也是学生。",
+      "exampleEnglish": "I am a student, and he is a student too."
+    },
+    {
+      "point": "否定副词“不”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "不 before a verb or adjective negates present, habitual, or intended actions and states.",
+      "exampleChinese": "我不是老师。",
+      "exampleEnglish": "I am not a teacher."
+    },
+    {
+      "point": "否定副词“没（有）”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "没(有) negates possession and completed actions: “not have / did not”.",
+      "exampleChinese": "我没有钱。",
+      "exampleEnglish": "I have no money."
+    },
+    {
+      "point": "介词“在”（引出时间、处所）",
+      "pattern": "在＋处所＋动词",
+      "category": "Word classes",
+      "explanation": "The preposition 在 introduces the place or time of an action, before the verb.",
+      "exampleChinese": "我在学校学习。",
+      "exampleEnglish": "I study at school."
+    },
+    {
+      "point": "介词“和、对”（引出对象）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The preposition 和 introduces the person one does something with; 对 introduces the target “toward”.",
+      "exampleChinese": "我和妈妈去商店。",
+      "exampleEnglish": "I go to the store with Mom."
+    },
+    {
+      "point": "连词“和”（连接词语）",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The conjunction 和 joins nouns or noun phrases: “A and B”.",
+      "exampleChinese": "我有一只猫和一只狗。",
+      "exampleEnglish": "I have a cat and a dog."
+    },
+    {
+      "point": "结构助词“的”",
+      "pattern": "定语＋的＋名词",
+      "category": "Word classes",
+      "explanation": "The particle 的 links a modifier to its noun and marks possession: 我的书 “my book”.",
+      "exampleChinese": "那是我的书。",
+      "exampleEnglish": "That is my book."
+    },
+    {
+      "point": "动态助词“了”",
+      "pattern": "动词＋了（＋宾语）",
+      "category": "Word classes",
+      "explanation": "The aspect particle 了 right after a verb marks a completed action.",
+      "exampleChinese": "我买了三本书。",
+      "exampleEnglish": "I bought three books."
+    },
+    {
+      "point": "语气助词“吗”",
+      "pattern": "……＋吗？",
+      "category": "Word classes",
+      "explanation": "Sentence-final 吗 turns a statement into a yes-no question.",
+      "exampleChinese": "你是学生吗？",
+      "exampleEnglish": "Are you a student?"
+    },
+    {
+      "point": "语气助词“呢”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Sentence-final 呢 asks “what about…?”, softens a question in progress, or asks where something is.",
+      "exampleChinese": "我是老师，你呢？",
+      "exampleEnglish": "I am a teacher. What about you?"
+    },
+    {
+      "point": "语气助词“吧”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "Sentence-final 吧 makes a suggestion or marks an assumption the speaker expects to be right.",
+      "exampleChinese": "我们回家吧。",
+      "exampleEnglish": "Let’s go home."
+    },
+    {
+      "point": "语气助词“了”（变化）",
+      "pattern": "……＋了",
+      "category": "Word classes",
+      "explanation": "Sentence-final 了 marks a new situation or change of state: “now / anymore”.",
+      "exampleChinese": "天气冷了。",
+      "exampleEnglish": "The weather has gotten cold."
+    },
+    {
+      "point": "叹词“喂”",
+      "pattern": "",
+      "category": "Word classes",
+      "explanation": "The interjection 喂 opens a phone call or calls for someone’s attention: “hello?”.",
+      "exampleChinese": "喂，你现在忙吗？",
+      "exampleEnglish": "Hello, are you busy right now?"
+    },
+    {
+      "point": "主谓句1：动词谓语句",
+      "pattern": "主语＋动词（＋宾语）",
+      "category": "Sentence patterns",
+      "explanation": "The basic sentence: a subject followed by a verb and an optional object.",
+      "exampleChinese": "我吃米饭。",
+      "exampleEnglish": "I eat rice."
+    },
+    {
+      "point": "主谓句2：形容词谓语句",
+      "pattern": "主语＋（副词＋）形容词",
+      "category": "Sentence patterns",
+      "explanation": "An adjective serves directly as the predicate: no 是 is used before it.",
+      "exampleChinese": "爸爸今天很忙。",
+      "exampleEnglish": "Dad is very busy today."
+    },
+    {
+      "point": "主谓句3：名词谓语句",
+      "pattern": "主语＋名词性词语",
+      "category": "Sentence patterns",
+      "explanation": "A noun phrase serves directly as the predicate for dates, times, ages, and prices: no 是 needed.",
+      "exampleChinese": "今天星期一。",
+      "exampleEnglish": "Today is Monday."
+    },
+    {
+      "point": "非主谓句",
+      "pattern": "",
+      "category": "Sentence patterns",
+      "explanation": "A complete utterance without a subject-predicate structure, common in greetings and requests.",
+      "exampleChinese": "请坐，请喝茶。",
+      "exampleEnglish": "Please sit down and have some tea."
+    },
+    {
+      "point": "正反问句",
+      "pattern": "动词＋不＋动词",
+      "category": "Sentence patterns",
+      "explanation": "A yes-no question formed by juxtaposing the positive and negative forms of the verb or adjective.",
+      "exampleChinese": "你去不去？",
+      "exampleEnglish": "Are you going or not?"
+    },
+    {
+      "point": "祈使句（请／不要）",
+      "pattern": "不要＋动词",
+      "category": "Sentence patterns",
+      "explanation": "Imperatives use 请 for polite requests and 不要 to tell someone not to do something.",
+      "exampleChinese": "不要说话。",
+      "exampleEnglish": "Don’t talk."
+    },
+    {
+      "point": "“是”字句1（等同或类属）",
+      "pattern": "A＋是＋B",
+      "category": "Special sentence patterns",
+      "explanation": "是 links the subject to what it equals or what category it belongs to.",
+      "exampleChinese": "我是学生。",
+      "exampleEnglish": "I am a student."
+    },
+    {
+      "point": "“有”字句1（领有）",
+      "pattern": "主语＋有＋宾语",
+      "category": "Special sentence patterns",
+      "explanation": "有 expresses possession: the subject has something.",
+      "exampleChinese": "我有一个姐姐。",
+      "exampleEnglish": "I have an older sister."
+    },
+    {
+      "point": "存现句1",
+      "pattern": "处所＋有＋数量短语＋名词",
+      "category": "Special sentence patterns",
+      "explanation": "An existence sentence: a place comes first, then 有 (or 是) introduces what exists there.",
+      "exampleChinese": "桌子上有三本书。",
+      "exampleEnglish": "There are three books on the table."
+    },
+    {
+      "point": "连动句1",
+      "pattern": "主语＋动词1（＋宾语）＋动词2（＋宾语）",
+      "category": "Special sentence patterns",
+      "explanation": "Two verbs in sequence share one subject; the first is often 去/来 stating purpose or means.",
+      "exampleChinese": "我去商店买苹果。",
+      "exampleEnglish": "I go to the store to buy apples."
+    },
+    {
+      "point": "双宾语句1",
+      "pattern": "主语＋动词＋宾语1＋宾语2",
+      "category": "Special sentence patterns",
+      "explanation": "Some verbs take two objects: first the person, then the thing.",
+      "exampleChinese": "妈妈给我十块钱。",
+      "exampleEnglish": "Mom gives me ten yuan."
+    },
+    {
+      "point": "时间表示法",
+      "pattern": "数词＋点（＋数词＋分）",
+      "category": "Special ways of saying things",
+      "explanation": "Clock time is stated with 点 for the hour and 分 for the minutes, placed before the verb.",
+      "exampleChinese": "现在三点十分。",
+      "exampleEnglish": "It is now ten past three."
+    },
+    {
+      "point": "钱数表示法",
+      "pattern": "数词＋块（钱）",
+      "category": "Special ways of saying things",
+      "explanation": "Prices are counted with 块 (colloquial) or 元 (formal): 三块钱 “three yuan”.",
+      "exampleChinese": "这个苹果三块钱。",
+      "exampleEnglish": "This apple is three yuan."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "freeCharacters": [
+    { "id": "sakura-street", "name": "Mira · Lantern Traveler", "presentation": "Female", "description": "Rigged anime traveler with braided chestnut hair, bright green eyes, a teal cape coat, skirt, tights, and boots.", "model": "../assets/models/characters/anime-female-mage/anime_female_mage.glb", "renderStyle": "vertex-painted", "renderScale": 1.12, "outfitId": "teal-traveler", "outfitOptions": [{"id":"teal-traveler","name":"Teal Traveler Coat","premium":false},{"id":"petal-pop","name":"Petal Pop Hoodie","premium":false},{"id":"rose-afterglow","name":"Rose Afterglow","premium":false}], "hairStyle": "Braids", "premium": false, "palette": { "hair": "#76513f", "top": "#3d7784", "bottom": "#292a35" } },
+    { "id": "kai-blue", "name": "Kai Blue", "presentation": "Male", "description": "A distinct anime-style boy with expressive eyes, chestnut hair, a blue-and-white hoodie, dark trousers, and sneakers.", "model": "../assets/models/characters/kai-anime-boy.vrm", "renderStyle": "vrm", "renderScale": 1, "outfitId": "skyline-bomber", "outfitOptions": [{"id":"skyline-bomber","name":"Skyline Bomber","premium":false},{"id":"cloud-campus","name":"Cloud Campus","premium":false}], "hairStyle": "Soft short crop", "premium": false, "palette": { "hair": "#29364e", "top": "#427fb2", "bottom": "#29364e" } },
+    { "id": "violet-atelier", "name": "Maid · Pink Classic", "presentation": "Female", "description": "Rigged anime maid in a pink outfit, with expressive face, detailed hair, and a complete humanoid body.", "model": "/assets/models/characters/maid/Maid.fbx", "modelFormat": "fbx", "textureSet": "maid", "proceduralLocomotion": true, "outfitId": "maid-pink", "outfitOptions": [{"id":"maid-pink","name":"Pink Maid Outfit","premium":false}], "hairStyle": "Long anime hair", "premium": false, "palette": { "hair": "#453238", "top": "#ec9ab5", "bottom": "#f1e8ed" } },
+    { "id": "juniper-tech", "name": "Jack · Pumpkin Boy", "presentation": "Male", "description": "A fully rigged, playful pumpkin-headed character. This original FBX includes no animation clips.", "model": "/assets/models/characters/jack-pumpkin/Jack.fbx", "modelFormat": "fbx", "renderStyle": "authored", "proceduralLocomotion": true, "outfitId": "pumpkin-classic", "outfitOptions": [{"id":"pumpkin-classic","name":"Pumpkin Classic","premium":false}], "hairStyle": "Pumpkin head", "premium": false, "palette": { "hair": "#e97932", "top": "#394a33", "bottom": "#302b2b" } }
+  ],
+  "premiumCosmetics": [
+    { "id": "premium-capsule", "name": "Lantern Festival Capsule", "kind": "outfit-set", "premium": true, "enabled": false, "requires": "A configured cosmetics store and entitlement service." }
+  ],
+  "supportedAnimations": ["Idle", "Walk", "Run", "Jump", "Land", "Wave", "Sit", "Dance", "Celebrate"],
+  "customization": {
+    "hairColors": ["rose", "midnight", "violet", "espresso", "silver", "mint"],
+    "skinTones": ["warm", "peach", "bronze", "deep", "porcelain"],
+    "eyeColors": ["ocean", "amber", "violet", "green"],
+    "basicAccessories": ["signature accessory included per character", "no accessory"],
+    "premiumAccessories": [{"id":"festival-set","name":"Lantern Festival set","premium":true,"enabled":false}]
+  }
+}
