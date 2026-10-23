@@ -222,8 +222,9 @@ export function createWorld(canvas) {
 
   document.querySelectorAll("[data-move]").forEach(button => {
     const dir = button.dataset.move;
+    if (dir === "interact") { button.addEventListener("click", openNearest); return; }
     const key = { forward: "KeyW", back: "KeyS", left: "KeyA", right: "KeyD", run: "ShiftLeft", jump: "Space" }[dir];
-    if (dir === "jump") { button.addEventListener("pointerdown", () => { if (grounded) { velocityY = 7; grounded = false; } }); return; }
+    if (dir === "jump") { button.addEventListener("pointerdown", event => { event.preventDefault(); if (grounded) { velocityY = 7; grounded = false; } }); return; }
     button.addEventListener("pointerdown", e => { e.preventDefault(); heldTouch.add(key); });
     ["pointerup", "pointerleave", "pointercancel"].forEach(name => button.addEventListener(name, () => heldTouch.delete(key)));
   });
