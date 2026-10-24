@@ -132,6 +132,10 @@ export function createWorld(canvas) {
 
   const keys = new Set();
   const heldTouch = new Set();
+  const joystickVector = new THREE.Vector2();
+  const joystick = document.querySelector("[data-touch-joystick]");
+  const joystickKnob = document.querySelector("[data-joystick-knob]");
+  let joystickPointerId = null;
   let yaw = 0, pitch = 0.22, dragging = false, previousX = 0, previousY = 0, velocityY = 0, grounded = true, landingTime = 0;
   let activePlace = null, activeEmote = null, activeEmoteTime = 0;
   let running = true;
@@ -174,6 +178,24 @@ export function createWorld(canvas) {
   }
   function onKeyUp(event) { keys.delete(event.code); }
   function playEmote(name) { activeEmote = name; activeEmoteTime = name === "Dance" ? 2 : name === "Sit" ? 1.8 : name === "Wave" ? 1.2 : 1.1; avatar.setAnimation(name); }
+  function moveJoystick(event) {
+    const rect = joystick.getBoundingClientRect();
+    const radius = Math.max(1, Math.min(rect.width, rect.height) * 0.34);
+    const dx = (event.clientX - (rect.left + rect.width / 2)) / radius;
+    const dy = (event.clientY - (rect.top + rect.height / 2)) / radius;
+    const length = Math.hypot(dx, dy);
+    const scale = length > 1 ? 1 / length : 1;
+    const x = dx * scale, y = dy * scale;
+    joystickVector.set(x, -y);
+    joystickKnob.style.setProperty("--joystick-x", `${x * radius}px`);
+    joystickKnob.style.setProperty("--joystick-y", `${y * radius}px`);
+  }
+  function releaseJoystick() {
+    joystickPointerId = null;
+    joystickVector.set(0, 0);
+    joystickKnob?.style.setProperty("--joystick-x", "0px");
+    joystickKnob?.style.setProperty("--joystick-y", "0px");
+  }
   function pointerDown(event) { dragging = true; previousX = event.clientX; previousY = event.clientY; canvas.setPointerCapture(event.pointerId); }
   function pointerMove(event) {
     if (!dragging) return;
@@ -199,7 +221,7 @@ export function createWorld(canvas) {
   canvas.addEventListener("pointermove", pointerMove);
   canvas.addEventListener("pointerup", pointerUp);
   canvas.addEventListener("pointercancel", pointerUp);
-  window.addEventListener("blur", () => keys.clear());
+  window.addEventListener("blur", () => { keys.clear(); heldTouch.clear(); releaseJoystick(); });
   window.addEventListener("lantern:profile", e => {
     const saved = e.detail;
     if (saved.appearance?.characterId && saved.appearance.characterId !== player.userData.characterId) {
@@ -220,6 +242,17 @@ export function createWorld(canvas) {
   canvas.parentElement.appendChild(emoteBar);
   emoteBar.addEventListener("click", event => { const button = event.target.closest("[data-world-emote]"); if (button) playEmote(button.dataset.worldEmote); });
 
+  joystick.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    joystickPointerId = event.pointerId;
+    joystick.setPointerCapture(event.pointerId);
+    moveJoystick(event);
+  });
+  joystick.addEventListener("pointermove", event => { if (event.pointerId === joystickPointerId) moveJoystick(event); });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(type => joystick.addEventListener(type, event => {
+    if (event.pointerId === joystickPointerId) releaseJoystick();
+  }));
+
   document.querySelectorAll("[data-move]").forEach(button => {
     const dir = button.dataset.move;
     if (dir === "interact") { button.addEventListener("click", openNearest); return; }
@@ -233,18 +266,21 @@ export function createWorld(canvas) {
   function animate(time) {
     if (!running) return;
     const dt = Math.min((time - previousTime) / 1000 || 0, 0.04); previousTime = time;
-    const forward = Number(keys.has("KeyW") || keys.has("ArrowUp") || heldTouch.has("KeyW")) - Number(keys.has("KeyS") || keys.has("ArrowDown") || heldTouch.has("KeyS"));
-    const side = Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA"));
+    const forward = THREE.MathUtils.clamp(Number(keys.has("KeyW") || keys.has("ArrowUp") || heldTouch.has("KeyW")) - Number(keys.has("KeyS") || keys.has("ArrowDown") || heldTouch.has("KeyS")) + joystickVector.y, -1, 1);
+    const side = THREE.MathUtils.clamp(Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA")) + joystickVector.x, -1, 1);
     const runningFast = keys.has("ShiftLeft") || keys.has("ShiftRight") || heldTouch.has("ShiftLeft");
     if (keys.has("Space") && grounded) { velocityY = 7; grounded = false; }
     const speed = runningFast ? 8.6 : 4.7;
     const direction = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
     const right = new THREE.Vector3(direction.z, 0, -direction.x);
     const movement = direction.multiplyScalar(-forward).add(right.multiplyScalar(side));
-    if (movement.lengthSq() > 0) {
-      movement.normalize(); player.position.addScaledVector(movement, speed * dt);
-      player.rotation.y = Math.atan2(movement.x, movement.z);
-    }
+    const inputStrength = Math.min(1, movement.length());
+    if (inputStrength > 0) movement.normalize().multiplyScalar(speed * inputStrength);
+    else movement.set(0, 0, 0);
+    const horizontalVelocity = player.userData.horizontalVelocity || (player.userData.horizontalVelocity = new THREE.Vector3());
+    horizontalVelocity.lerp(movement, 1 - Math.exp(-11 * dt));
+    player.position.addScaledVector(horizontalVelocity, dt);
+    if (horizontalVelocity.lengthSq() > 0.025) player.rotation.y = Math.atan2(horizontalVelocity.x, horizontalVelocity.z);
     player.position.x = THREE.MathUtils.clamp(player.position.x, -42, 42);
     player.position.z = THREE.MathUtils.clamp(player.position.z, -42, 42);
     velocityY -= 19 * dt; player.position.y += velocityY * dt;
@@ -255,9 +291,9 @@ export function createWorld(canvas) {
     camera.lookAt(target.x, target.y + 0.35, target.z);
     markers.forEach(({ orb, ring }, i) => { orb.rotation.y += dt * 0.75; orb.position.y = 2.05 + Math.sin(time * 0.0015 + i) * 0.18; ring.material.opacity = 0.75 + Math.sin(time * 0.003 + i) * 0.2; });
     landingTime = Math.max(0, landingTime - dt);
-    if (!grounded || movement.lengthSq() > 0) activeEmote = null;
+    if (!grounded || horizontalVelocity.lengthSq() > 0.025) activeEmote = null;
     if (activeEmote) { activeEmoteTime -= dt; if (activeEmoteTime <= 0) activeEmote = null; }
-    const nextAnimation = !grounded ? "Jump" : landingTime > 0 ? "Land" : activeEmote || (movement.lengthSq() > 0 ? (runningFast ? "Run" : "Walk") : "Idle");
+    const nextAnimation = !grounded ? "Jump" : landingTime > 0 ? "Land" : activeEmote || (horizontalVelocity.lengthSq() > 0.12 ? (runningFast ? "Run" : "Walk") : "Idle");
     if (avatar.animation !== nextAnimation.toLowerCase()) avatar.setAnimation(nextAnimation);
     avatar.update(dt);
     renderer.render(scene, camera);
