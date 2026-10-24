@@ -1,6 +1,8 @@
 import { rewardStudyAnswer, updateProfile } from "./profile.js";
 import { questions } from "./questions.js";
 import characterData from "./data/characters.json";
+import { mountPlayerStats } from "./analytics/playerStats.js";
+import "./analytics/playerStats.css";
 import "./hsk.css";
 import "./hsk.css";
 
@@ -153,6 +155,11 @@ import "./hsk.css";
 
   const customize = document.querySelector("#customize-modal");
   const profileModal = document.querySelector("#profile-modal");
+  mountPlayerStats({
+    totalElement: document.querySelector("#total-visitor-count"),
+    onlineElement: document.querySelector("#online-player-count"),
+    statusElement: document.querySelector("#player-count-status"),
+  });
   document.querySelectorAll("[data-customize-open]").forEach(button => button.addEventListener("click", () => { history.replaceState(null, "", "#character"); navigate("character"); }));
   document.querySelectorAll("[data-customize-close]").forEach(button => button.addEventListener("click", () => { customize.hidden = true; }));
   document.querySelectorAll("[data-profile-open]").forEach(button => button.addEventListener("click", () => { profileModal.hidden = false; openProfilePreview(); }));

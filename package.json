@@ -6,12 +6,18 @@
   "scripts": {
     "dev": "vite --configLoader runner --host 0.0.0.0",
     "build": "vite build --configLoader runner",
-    "preview": "vite preview --configLoader runner --host 0.0.0.0"
+    "preview": "vite preview --configLoader runner --host 0.0.0.0",
+    "ios:sync": "npm run build && cap sync ios",
+    "ios:open": "cap open ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@supabase/supabase-js": "^2.118.0",
     "three": "^0.180.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "vite": "^7.1.7"
   }
 }

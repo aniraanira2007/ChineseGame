@@ -12,6 +12,32 @@ Little Lantern is one website with two connected modes: a picture based Mandarin
 
 For a production build, run `npm run build`. To preview that build locally, run `npm run preview`.
 
+## Player activity counts
+
+The profile has two real counters: total unique browser profiles that have opened the game, and browser sessions currently connected. These are approximate activity counts, not verified human accounts. The online count may include multiple tabs or devices used by one person. The counters never invent values: they show as unavailable until Supabase is configured.
+
+To connect the counters:
+
+1. Create a Supabase project and open its **SQL Editor**. Run the complete SQL in `supabase/player-counts.sql` once.
+2. In Supabase project settings, copy the **Project URL** and the **publishable/anon client key**. Never put a `service_role` key in this website.
+3. For local development, copy `.env.example` to `.env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+4. For the public GitHub Pages build, open the repository's **Settings → Secrets and variables → Actions → Variables** and create variables named `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` with the same values. Push a new commit to `main` to publish the configured counters.
+
+The site stores a random browser ID to avoid counting the same browser profile repeatedly, and a separate temporary session ID for the online indicator. No player names are sent. Because this is a public anonymous counter, determined visitors could manipulate the totals; use it as an approximate count, not audited analytics. Visitors who clear their browser data or use another device may count again.
+
+## iPhone App Store build
+
+The web game is prepared to be packaged as a native iOS app with Capacitor. The App Store version uses the built game files locally inside the app, while the public website remains available separately. The configured display name is **Little Lantern**, and its bundle identifier is `com.aniraanira2007.littlelantern`.
+
+To create and run the iOS project, use a Mac with Xcode installed:
+
+1. Get the project files on the Mac and run `npm install`.
+2. Run `npx cap add ios` once to create the iOS project.
+3. Run `npm run ios:sync` whenever web code changes, then `npm run ios:open` to open it in Xcode.
+4. In Xcode, select your Apple Developer team, run the app on an iPhone or simulator, then archive and upload it to App Store Connect for review.
+
+This Windows workspace cannot sign, run, archive, or submit an iOS app because those steps require macOS and Xcode. An Apple Developer account and Apple's App Store review are also required before the app can appear in the App Store. The same source project can continue to be updated; rebuild and sync the iOS project to include changes in a later app release.
+
 ## Files
 
 - `index.html` — shared site shell, home page, Study Mode, Social World, and player dialogs.

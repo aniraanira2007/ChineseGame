@@ -1,0 +1,11 @@
+{
+  "appId": "com.aniraanira2007.littlelantern",
+  "appName": "Little Lantern",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "server": {
+    "iosScheme": "https"
+  }
+}
