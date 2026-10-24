@@ -270,5 +270,10 @@ import "./hsk.css";
     return studioPromise;
   }
 
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
+      .catch(error => console.warn("Little Lantern offline support could not start.", error));
+  }
+
   navigate(location.hash.slice(1) || "home");
 })();

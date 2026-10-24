@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Little Lantern — Learn Chinese",
+  "short_name": "Little Lantern",
+  "description": "A playful place to learn Mandarin and explore Lantern Plaza.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f8f7f3",
+  "theme_color": "#f8f7f3",
+  "categories": ["education", "games"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
