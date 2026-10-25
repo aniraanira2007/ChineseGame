@@ -18,8 +18,11 @@ const assetCache = new Map();
 let mageTexturePromise;
 let maidTexturePromise;
 const catalogById = new Map(catalog.freeCharacters.map(character => [character.id, character]));
-const maidModelUrl = "/assets/models/characters/maid/Maid.fbx";
-const pumpkinModelUrl = "/assets/models/characters/jack-pumpkin/Jack.fbx";
+
+// Public assets must respect Vite’s base path on GitHub Pages as well as local development.
+const publicAssetUrl = path => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
+const maidModelUrl = publicAssetUrl("assets/models/characters/maid/Maid.fbx");
+const pumpkinModelUrl = publicAssetUrl("assets/models/characters/jack-pumpkin/Jack.fbx");
 const modelUrls = { "sakura-street": mageModelUrl, "kai-blue": kaiAnimeBoyModelUrl, "violet-atelier": maidModelUrl, "juniper-tech": pumpkinModelUrl };
 const toonGradient = new THREE.DataTexture(new Uint8Array([105,105,105, 176,176,176, 255,255,255]), 3, 1, THREE.RGBFormat);
 toonGradient.minFilter = THREE.NearestFilter;
@@ -58,7 +61,7 @@ function loadMaidTextures() {
   if (!maidTexturePromise) {
     const names = ["Body_Tex", "Clothes_Tex", "Eyebrows_tex", "EyeHighlights_tex", "Eyelashes_Tex", "Eyes_Tex", "EyeWhite_Tex", "Face_Tex", "Hair1_Tex", "Hair2_Tex", "Mouth_tex", "Shoes_Tex"];
     maidTexturePromise = Promise.all(names.map(async name => {
-      const texture = await textureLoader.loadAsync(`/assets/models/characters/maid/Textures/${name}.png`);
+      const texture = await textureLoader.loadAsync(publicAssetUrl(`assets/models/characters/maid/Textures/${name}.png`));
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.needsUpdate = true;
       return [name.toLowerCase(), texture];
