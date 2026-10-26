@@ -877,7 +877,13 @@ export function createWorld(canvas) {
       });
       if (entered) enterRoom(entered.roomId);
     }
-    if (horizontalVelocity.lengthSq() > 0.025) player.rotation.y = Math.atan2(horizontalVelocity.x, horizontalVelocity.z);
+    if (horizontalVelocity.lengthSq() > 0.025) {
+      const targetHeading = Math.atan2(horizontalVelocity.x, horizontalVelocity.z);
+      // Interpolate the shortest angular distance so left/right changes never
+      // spin the avatar the long way across the +/- PI boundary.
+      const headingDelta = Math.atan2(Math.sin(targetHeading - player.rotation.y), Math.cos(targetHeading - player.rotation.y));
+      player.rotation.y += headingDelta * (1 - Math.exp(-12 * dt));
+    }
     // The room/outdoor movement branches already constrain the player to the
     // walkable floor and handle doorway transitions before gravity is applied.
     velocityY -= 19 * dt; player.position.y += velocityY * dt;
