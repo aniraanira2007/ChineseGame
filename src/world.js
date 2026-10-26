@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { getProfile, rewardWorldVisit } from "./profile.js";
+import { getProfile, rewardWorldVisit, updateProfile } from "./profile.js";
 import { createCharacter } from "./utils/characterLoader.js";
 
 export function createWorld(canvas) {
@@ -295,6 +295,22 @@ export function createWorld(canvas) {
   for (const [x, z] of [[-12,-1],[12,-1],[-2,12],[2,-12],[-22,1],[22,1]]) {
     const petal = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.18, 7), materials.gold); petal.position.set(x, 0.16, z); scene.add(petal);
   }
+  // Bright balloon bouquets add a friendly festival feel at the plaza edges.
+  const plazaBalloons = [];
+  function addBalloonBouquet(x, z, phase = 0) {
+    const group = new THREE.Group(); group.position.set(x, 0, z); scene.add(group);
+    const colors = ["#ff8794", "#70c9dc", "#ffd064", "#a995e9"];
+    colors.forEach((color, index) => {
+      const offset = (index - 1.5) * 0.34;
+      const balloon = new THREE.Mesh(new THREE.SphereGeometry(0.37, 12, 10), new THREE.MeshStandardMaterial({ color, roughness: 0.34, metalness: 0.04 }));
+      balloon.position.set(offset, 2.14 + (index % 2) * 0.18, Math.abs(index - 1.5) * 0.08); balloon.scale.set(0.84, 1.12, 0.84); balloon.castShadow = true; group.add(balloon);
+      const string = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(offset, 1.8 + (index % 2) * 0.18, 0), new THREE.Vector3(0, 0.74, 0)]), new THREE.LineBasicMaterial({ color: "#fff4e0" }));
+      group.add(string);
+    });
+    const tie = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), new THREE.MeshStandardMaterial({ color: "#f3d9b1", roughness: 0.8 })); tie.position.y = 0.72; group.add(tie);
+    plazaBalloons.push({ group, phase });
+  }
+  addBalloonBouquet(-13, 1.5, 0.4); addBalloonBouquet(13, 1.5, 2.1); addBalloonBouquet(0, 26, 3.4);
 
   // A small international food lane grows from the plaza instead of appearing
   // as a separate menu. Three distinct stalls sit beside the same paved walk.
@@ -404,6 +420,60 @@ export function createWorld(canvas) {
     { id: "hunt-bun", name: "Word Hunt · Steamed Bun", x: -20, z: 18, icon: "包", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "bun", color: "#c99b68" },
     { id: "hunt-apple", name: "Word Hunt · Apple", x: 21, z: 18, icon: "果", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "apple", color: "#bc645a" },
   ];
+  // A light daily plaza activity makes the world feel like a playful place to
+  // explore. Progress is stored with the same player profile as XP and coins.
+  const plazaToday = new Date();
+  const plazaHuntDate = `${plazaToday.getFullYear()}-${String(plazaToday.getMonth() + 1).padStart(2, "0")}-${String(plazaToday.getDate()).padStart(2, "0")}`;
+  const savedPlazaHunt = getProfile().plazaStarHunt;
+  const plazaHuntFound = new Set(savedPlazaHunt?.date === plazaHuntDate && Array.isArray(savedPlazaHunt.found) ? savedPlazaHunt.found : []);
+  const plazaStarHUD = document.querySelector("[data-plaza-star-hunt]");
+  const plazaStarCount = plazaStarHUD?.querySelector("[data-plaza-star-count]");
+  const plazaStarMessage = plazaStarHUD?.querySelector("[data-plaza-star-message]");
+  const plazaStarToast = document.querySelector("[data-plaza-star-toast]");
+  const plazaStars = [];
+  const starColors = ["#ffcf5c", "#ff8da1", "#70d8cf", "#a990ff", "#ffad60"];
+  const starSpots = [
+    { id: "west-garden", x: -7, z: 4 }, { id: "east-garden", x: 7, z: 4 },
+    { id: "west-path", x: -7, z: -7 }, { id: "east-path", x: 7, z: -7 },
+    { id: "lantern-lane", x: 0, z: -18 },
+  ];
+  starSpots.forEach((spot, index) => {
+    if (plazaHuntFound.has(spot.id)) return;
+    const group = new THREE.Group(); group.position.set(spot.x, 1.15, spot.z); scene.add(group);
+    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.48, 1), new THREE.MeshStandardMaterial({ color: starColors[index], emissive: starColors[index], emissiveIntensity: 0.72, metalness: 0.12, roughness: 0.28 }));
+    crystal.castShadow = true; group.add(crystal);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.045, 8, 28), new THREE.MeshBasicMaterial({ color: "#fff1bd", transparent: true, opacity: 0.88 }));
+    halo.rotation.x = Math.PI / 2; halo.position.y = -0.34; group.add(halo);
+    plazaStars.push({ ...spot, group, crystal, halo, phase: index * 1.7 });
+  });
+  function updatePlazaHuntHUD(message) {
+    if (!plazaStarHUD) return;
+    const count = plazaHuntFound.size;
+    if (plazaStarCount) plazaStarCount.textContent = `${count}/5`;
+    if (plazaStarMessage) plazaStarMessage.textContent = message || (count >= 5 ? "All found! Come back tomorrow for a new hunt." : "Walk close to a glowing star to collect it.");
+    plazaStarHUD.classList.toggle("is-complete", count >= 5);
+  }
+  updatePlazaHuntHUD();
+  let plazaStarToastTimer = 0;
+  function collectPlazaStar(star) {
+    if (plazaHuntFound.has(star.id)) return;
+    plazaHuntFound.add(star.id);
+    star.group.visible = false;
+    const complete = plazaHuntFound.size === starSpots.length;
+    const profile = getProfile();
+    updateProfile({
+      xp: profile.xp + (complete ? 12 : 3),
+      coins: profile.coins + (complete ? 6 : 1),
+      plazaStarHunt: { date: plazaHuntDate, found: [...plazaHuntFound] },
+    });
+    updatePlazaHuntHUD(complete ? "Plaza hunt complete! +12 XP · +6 coins 🎉" : `Friendship star found! +3 XP · +1 coin · ${plazaHuntFound.size}/5`);
+    if (plazaStarToast) {
+      plazaStarToast.textContent = complete ? "🌟 Plaza hunt complete! +12 XP · +6 coins" : "✨ Friendship star! +3 XP · +1 coin";
+      plazaStarToast.hidden = false;
+      clearTimeout(plazaStarToastTimer);
+      plazaStarToastTimer = window.setTimeout(() => { plazaStarToast.hidden = true; }, 2300);
+    }
+  }
   const worldMapButton = document.querySelector("[data-world-map-toggle]");
   const worldMapPanel = document.querySelector("#world-map-panel");
   const worldMapList = document.querySelector("[data-world-map-list]");
@@ -664,6 +734,7 @@ export function createWorld(canvas) {
   function enterRoom(id) {
     const room = rooms.get(id); if (!room) return;
     insideRoom = room;
+    if (plazaStarHUD) plazaStarHUD.hidden = true;
     canvas.parentElement.classList.add("in-room");
     if (studyPortal) { studyPortal.hidden = true; studyPortal.style.display = "none"; }
     if (worldExit) worldExit.style.display = "none";
@@ -698,6 +769,7 @@ export function createWorld(canvas) {
     player.userData.horizontalVelocity?.set(0, 0, 0);
     insideRoom = null; camera.layers.set(0); camera.far = 280; camera.updateProjectionMatrix();
     canvas.parentElement.classList.remove("in-room");
+    if (plazaStarHUD) plazaStarHUD.hidden = false;
     if (studyPortal) { studyPortal.hidden = false; studyPortal.style.removeProperty("display"); }
     if (worldExit) worldExit.style.removeProperty("display");
     if (roomExit) { roomExit.hidden = true; roomExit.style.removeProperty("display"); roomExit.style.removeProperty("position"); roomExit.style.removeProperty("top"); roomExit.style.removeProperty("left"); roomExit.style.removeProperty("transform"); roomExit.style.removeProperty("z-index"); }
@@ -999,6 +1071,17 @@ export function createWorld(canvas) {
   function animate(time) {
     if (!running || !visible) return;
     const dt = Math.min((time - previousTime) / 1000 || 0, 0.04); previousTime = time;
+    plazaStars.forEach((star, index) => {
+      star.group.position.y = 1.18 + Math.sin(time * 0.0028 + star.phase) * 0.16;
+      star.crystal.rotation.y += dt * 1.7;
+      star.crystal.rotation.x = Math.sin(time * 0.0017 + star.phase) * 0.13;
+      star.halo.rotation.z += dt * (index % 2 ? -0.65 : 0.65);
+      if (!insideRoom && (player.position.x - star.x) ** 2 + (player.position.z - star.z) ** 2 < 1.65 ** 2) collectPlazaStar(star);
+    });
+    plazaBalloons.forEach(({ group, phase }) => {
+      group.position.y = Math.sin(time * 0.0014 + phase) * 0.1;
+      group.rotation.z = Math.sin(time * 0.001 + phase) * 0.045;
+    });
     const forward = THREE.MathUtils.clamp(Number(keys.has("KeyW") || keys.has("ArrowUp") || heldTouch.has("KeyW")) - Number(keys.has("KeyS") || keys.has("ArrowDown") || heldTouch.has("KeyS")) + joystickVector.y, -1, 1);
     const side = THREE.MathUtils.clamp(Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA")) + joystickVector.x, -1, 1);
     const runningFast = keys.has("ShiftLeft") || keys.has("ShiftRight") || heldTouch.has("ShiftLeft");
