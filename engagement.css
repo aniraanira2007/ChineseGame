@@ -1,0 +1,34 @@
+.welcome-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:19px}
+.welcome-actions .primary-btn{margin:0}
+.welcome-actions .text-btn{padding:9px 4px;color:#537d67}
+.share-worldmates{border:1px solid #e2e7dd;border-radius:7px;padding:10px 12px;background:#fffefa;color:#59715e;font-size:11px;font-weight:700;cursor:pointer}
+.share-worldmates:hover{background:#f2f7ef;border-color:#b8cbb7}
+.share-status{min-height:0;margin:6px 0 0;color:#58775d;font-size:11px;line-height:1.5}
+.share-status:empty{display:none}
+.share-fallback{display:grid;gap:5px;margin-top:8px;color:#70796f;font-size:10px}
+.share-fallback[hidden]{display:none}
+.share-fallback input{width:min(100%,430px);padding:9px;border:1px solid #dfe4db;border-radius:6px;background:#fffefa;color:#536359;font:inherit;user-select:all}
+.study-card{--card-accent:#6b9074}
+.study-tag{background:#edf4eb;color:#5c8064}
+.study-illustration{height:104px;position:relative;display:grid;place-items:center;overflow:hidden;border-radius:7px;background:linear-gradient(130deg,#e9f0df,#f4e5c8 58%,#e9c395);color:#4f735b}
+.study-illustration>span{font-family:serif;font-size:53px;font-weight:700;letter-spacing:8px;text-shadow:0 5px 0 #ffffff75}
+.study-illustration>i,.study-illustration>b{position:absolute;font-style:normal;font-size:10px;letter-spacing:2px;color:#9e7750}
+.study-illustration>i{left:14px;top:12px}.study-illustration>b{right:13px;bottom:12px;color:#617a61}
+.study-decoration{color:#e8e1d4}
+.world-map-toggle{position:absolute;top:145px;right:14px;z-index:3;border:1px solid #e5e3d8;border-radius:999px;padding:8px 13px;background:#fffef2ed;color:#536e5b;font-size:11px;font-weight:800;box-shadow:0 3px 14px #293c3028;cursor:pointer}
+.world-map-toggle:hover,.world-map-toggle[aria-expanded="true"]{background:#fff;border-color:#b8ccb7}
+.world-map-panel{position:absolute;top:185px;right:14px;z-index:5;display:flex;flex-direction:column;width:min(350px,calc(100% - 28px));max-height:min(61vh,520px);padding:15px;background:#fffefa;border:1px solid #e5e2d8;border-radius:12px;box-shadow:0 12px 34px #26392f45;color:#424d44}
+.world-map-panel[hidden]{display:none}
+.world-map-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.world-map-heading .eyebrow{margin:0 0 3px;font-size:8px;letter-spacing:1px;color:#859181}
+.world-map-heading h2{margin:0;font:800 19px 'Nunito',sans-serif}
+.world-map-heading>button{width:32px;height:32px;border:0;border-radius:50%;background:#f3f2eb;color:#7c8279;font-size:22px;cursor:pointer}
+.world-map-help{margin:8px 0 5px;color:#777f75;font-size:10px;line-height:1.5}
+.world-map-status{margin:0 0 9px;padding:8px;border-radius:7px;background:#f1f5ee;color:#58715a;font-size:10px;line-height:1.45}
+.world-map-list{display:grid;grid-template-columns:1fr 1fr;gap:7px;overflow:auto;overscroll-behavior:contain;padding:1px 3px 2px 1px}
+.world-map-place{display:grid;grid-template-columns:30px 1fr;grid-template-rows:auto auto;align-items:center;gap:1px 7px;min-height:49px;padding:7px;border:1px solid #e9e8df;border-radius:8px;background:#fff;cursor:pointer;text-align:left;color:#465348}
+.world-map-place:hover,.world-map-place:focus-visible{border-color:#aac4aa;background:#f5f8f1;outline:0}
+.world-map-place>span{grid-row:1/3;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#f3ead9;color:#9a724b;font:700 15px serif}
+.world-map-place>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+.world-map-place>small{font-size:8px;color:#7f947c}
+@media(max-width:760px){.welcome-actions{gap:7px;margin-top:15px}.welcome-actions .primary-btn{width:100%;justify-content:center}.share-worldmates{padding:9px 10px}.study-illustration{height:80px}.world-map-toggle{top:137px;right:9px;padding:7px 10px;font-size:10px}.world-map-panel{top:176px;right:8px;width:calc(100% - 16px);max-height:min(58vh,460px);padding:12px}.world-map-list{gap:6px}.world-map-place{padding:6px;grid-template-columns:26px 1fr}.world-map-place>span{width:25px;height:25px;font-size:13px}.world-map-place>b{font-size:9px}}

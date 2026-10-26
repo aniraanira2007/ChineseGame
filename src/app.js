@@ -196,6 +196,31 @@ import "./hsk.css";
 
   const customize = document.querySelector("#customize-modal");
   const profileModal = document.querySelector("#profile-modal");
+  const shareButton = document.querySelector("#share-worldmates");
+  const shareStatus = document.querySelector("#share-status");
+  const shareFallback = document.querySelector("#share-fallback");
+  const shareUrlInput = document.querySelector("#share-url");
+  shareButton?.addEventListener("click", async () => {
+    const inviteUrl = `${location.origin}${import.meta.env.BASE_URL}`;
+    shareStatus.textContent = "";
+    shareFallback.hidden = true;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Worldmates", text: "Learn Chinese, explore the plaza, and share cultures in Worldmates.", url: inviteUrl });
+        shareStatus.textContent = "Choose a friend in your share sheet to send the game.";
+        return;
+      }
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(inviteUrl);
+      shareStatus.textContent = "Game link copied. Send it to a friend!";
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      shareUrlInput.value = inviteUrl;
+      shareFallback.hidden = false;
+      shareStatus.textContent = "Sharing isn’t available here. Copy the game link below.";
+    }
+  });
+  shareUrlInput?.addEventListener("focus", event => event.currentTarget.select());
   mountPlayerStats({
     totalElement: document.querySelector("#total-visitor-count"),
     onlineElement: document.querySelector("#online-player-count"),

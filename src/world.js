@@ -129,7 +129,9 @@ export function createWorld(canvas) {
   }
   const exteriorEntrances = [];
   const roomIdByBuilding = { "Lantern Chinese School": "classroom", "Tea House": "teahouse", Bookshop: "library", "Student House": "home", "Shanghai Noodle House": "food", "Dumpling & Tea": "dumpling", "Shanghai Coffee": "cafe", "World Culture Museum": "museum", "Art & Music Studio": "studio", "Riverside Garden": "garden" };
+  const buildingFootprints = [];
   function building(x, z, width, depth, height, wall, roof, label, sign = "学") {
+    buildingFootprints.push({ x, z, halfX: width / 2 + 0.8, halfZ: depth / 2 + 0.8, roomId: roomIdByBuilding[label] || null });
     // Keep each real doorway facing the central road instead of drawing a fake
     // door over a solid wall on the back of the building.
     const frontSign = z <= 0 ? 1 : -1;
@@ -387,7 +389,7 @@ export function createWorld(canvas) {
     { id: "garden", name: "Garden Hall", x: 17, z: 10.4, icon: "园", detail: "A quiet place for a short solo practice circle with scripted classmates.", action: "Open study circle", route: "school", schoolTab: "circle", requireWords: 5, color: "#81a96e" },
     { id: "student-house", name: "Student House", x: -34, z: 10.4, icon: "家", detail: "The pink student home faces the south side of the road. Sit at your study desk and review words.", action: "Enter the student house", route: "room", roomId: "home", color: "#d88d76" },
     { id: "noodle-house", name: "Shanghai Noodle House", x: 32, z: -8.2, icon: "面", detail: "Order a bowl of Shanghai-style noodles, learn the food words, and sit at the shared table.", action: "Enter the noodle house", route: "room", roomId: "food", requireWords: 5, color: "#d68c55" },
-    { id: "dumpling-tea", name: "Dumpling & Tea", x: 32, z: -0.4, icon: "饺", detail: "Explore a little local food shop with dumplings, tea, and a Chinese menu.", action: "Enter the food shop", route: "room", roomId: "dumpling", color: "#b97b91" },
+    { id: "dumpling-tea", name: "Dumpling & Tea", x: 32, z: -4.2, icon: "饺", detail: "Explore a little local food shop with dumplings, tea, and a Chinese menu.", action: "Enter the food shop", route: "room", roomId: "dumpling", color: "#b97b91" },
     { id: "coffee", name: "Shanghai Coffee House", x: 32, z: 16.7, icon: "咖", detail: "Take a quiet break in a Shanghai-inspired coffee shop. Sit at a little table and learn a café phrase.", action: "Enter the coffee shop", route: "room", roomId: "cafe", color: "#81a987" },
     { id: "museum", name: "World Culture Museum", x: -34, z: -8.3, icon: "文", detail: "Explore a small gallery of culture cards and practise describing places, food, and daily life.", action: "Enter the museum", route: "room", roomId: "museum", color: "#7a9abe" },
     { id: "art-studio", name: "Art & Music Studio", x: 17, z: 24.7, icon: "艺", detail: "Take a creative break, learn art and music words, and join a quiet study circle.", action: "Enter the art studio", route: "room", roomId: "studio", color: "#cf83a3" },
@@ -402,6 +404,13 @@ export function createWorld(canvas) {
     { id: "hunt-bun", name: "Word Hunt · Steamed Bun", x: -20, z: 18, icon: "包", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "bun", color: "#c99b68" },
     { id: "hunt-apple", name: "Word Hunt · Apple", x: 21, z: 18, icon: "果", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "apple", color: "#bc645a" },
   ];
+  const worldMapButton = document.querySelector("[data-world-map-toggle]");
+  const worldMapPanel = document.querySelector("#world-map-panel");
+  const worldMapList = document.querySelector("[data-world-map-list]");
+  const worldMapStatus = document.querySelector("[data-world-map-status]");
+  const mapPlaceOrder = ["classroom", "bookshop", "teahouse", "pavilion", "noodle-house", "dumpling-tea", "coffee", "street-pho", "street-yatai", "street-xiaolongbao", "museum", "art-studio", "riverside-garden", "garden", "student-house"];
+  const mapPlaces = landmarks.filter(place => !place.huntId).sort((a, b) => mapPlaceOrder.indexOf(a.id) - mapPlaceOrder.indexOf(b.id));
+  if (worldMapList) worldMapList.innerHTML = mapPlaces.map(place => `<button class="world-map-place" type="button" data-map-place="${escapeHtml(place.id)}"><span>${escapeHtml(place.icon)}</span><b>${escapeHtml(place.name)}</b><small>Walk there →</small></button>`).join("");
   // Five low-poly props make the Word Hunt targets visible in the playable plaza.
   function huntProp(x, z, kind) {
     const group = new THREE.Group(); group.position.set(x, 0, z); scene.add(group);
@@ -448,7 +457,7 @@ export function createWorld(canvas) {
     { id: "home", name: "Student House", x: 103, z: 65, layer: 3, wall: "#f0dfd3", trim: "#b96f62", floor: "#bd966c", outside: [-34, 10.4], doorWidth: 3.2, stations: [{ id: "homework-desk", label: "Homework desk", x: 0, z: 0, icon: "文", tab: "lesson" }, { id: "home-books", label: "Family bookcase", x: 3.5, z: 3.4, icon: "书", tab: "words" }] },
     { id: "teahouse", name: "School Tea House", x: 122, z: 65, layer: 4, wall: "#d7e5e7", trim: "#54818b", floor: "#c69b6b", outside: [17, -8.3], doorWidth: 3.2, stations: [{ id: "mei-corner", label: "NPC Conversation Quests", x: 0, z: 0, icon: "梅", tab: "npcquests" }, { id: "mei-chat", label: "Mei’s tea table", x: 3.4, z: 3.2, icon: "茶", tab: "talk" }, { id: "tea-reading", label: "Tea & reading", x: -3.5, z: 3.2, icon: "书", tab: "words" }] },
     { id: "food", name: "Shanghai Food Street", x: 141, z: 65, layer: 5, wall: "#f2dfc4", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -8.2], doorWidth: 3.2, stations: [{ id: "food-order", label: "Order with Lin", x: 0, z: 0, icon: "面", tab: "order" }, { id: "food-timer", label: "Timed Food Street Challenge", x: -3.3, z: 3.6, icon: "计", tab: "timedfood" }, { id: "food-table", label: "Weekly word book", x: 3.2, z: 3.6, icon: "饺", tab: "words" }] },
-    { id: "dumpling", name: "Dumpling & Tea", x: 160, z: 65, layer: 6, wall: "#f1d7d7", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -0.4], doorWidth: 3.2, stations: [{ id: "dumpling-menu", label: "Dumpling menu", x: 0, z: 0, icon: "饺", tab: "lesson" }, { id: "dumpling-table", label: "Tea table", x: 3.2, z: 3.6, icon: "茶", tab: "talk" }] },
+    { id: "dumpling", name: "Dumpling & Tea", x: 160, z: 65, layer: 6, wall: "#f1d7d7", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -4.2], doorWidth: 3.2, stations: [{ id: "dumpling-menu", label: "Dumpling menu", x: 0, z: 0, icon: "饺", tab: "lesson" }, { id: "dumpling-table", label: "Tea table", x: 3.2, z: 3.6, icon: "茶", tab: "talk" }] },
     { id: "cafe", name: "Shanghai Coffee House", x: 179, z: 65, layer: 7, wall: "#dce9dd", trim: "#547b68", floor: "#c9b493", width: 14, depth: 16, height: 5, outside: [32, 16.7], doorWidth: 3.2, stations: [{ id: "coffee-menu", label: "Coffee & tea menu", x: 0, z: 0, icon: "咖", tab: "talk" }, { id: "coffee-reading", label: "Window reading table", x: -3.4, z: 3.4, icon: "书", tab: "words" }] },
     { id: "museum", name: "World Culture Museum", x: 198, z: 65, layer: 8, wall: "#e2e5ef", trim: "#647b9a", floor: "#c6b89f", width: 16, depth: 18, height: 5.4, outside: [-34, -8.3], doorWidth: 3.2, stations: [{ id: "museum-cards", label: "Culture gallery", x: -3.5, z: 1.5, icon: "文", tab: "culture" }, { id: "museum-words", label: "Travel word archive", x: 3.5, z: 1.5, icon: "书", tab: "words" }] },
     { id: "studio", name: "Art & Music Studio", x: 217, z: 65, layer: 9, wall: "#f0dfe6", trim: "#a65d7b", floor: "#c9ad91", width: 16, depth: 18, height: 5.4, outside: [17, 24.7], doorWidth: 3.2, stations: [{ id: "studio-circle", label: "Creative study circle", x: -3.5, z: 1.5, icon: "艺", tab: "circle" }, { id: "studio-lesson", label: "Art & music words", x: 3.5, z: 1.5, icon: "音", tab: "lesson" }] },
@@ -640,7 +649,7 @@ export function createWorld(canvas) {
   const joystickKnob = document.querySelector("[data-joystick-knob]");
   let joystickPointerId = null;
   let yaw = 0, pitch = 0.22, dragging = false, previousX = 0, previousY = 0, velocityY = 0, grounded = true, landingTime = 0;
-  let activePlace = null, activeEmote = null, activeEmoteTime = 0, autoWalkTarget = null;
+  let activePlace = null, activeEmote = null, activeEmoteTime = 0, autoWalkTarget = null, mapRouteActive = false;
   let autoWalkWaypoints = [];
   let insideRoom = null;
   let sitCameraYaw = 0;
@@ -734,6 +743,7 @@ export function createWorld(canvas) {
   const findSchool = document.querySelector("[data-find-school]");
   const findCulture = document.querySelector("[data-find-culture]");
   findSchool?.addEventListener("click", () => {
+    mapRouteActive = false;
     if (insideRoom) leaveRoom();
     hidePlace();
     autoWalkTarget = landmarks.find(place => place.id === "classroom");
@@ -754,6 +764,7 @@ export function createWorld(canvas) {
   });
   findCulture?.addEventListener("click", onFindCultureStreet);
   function onFindFood() {
+    mapRouteActive = false;
     if (insideRoom) leaveRoom();
     hidePlace();
     autoWalkTarget = landmarks.find(place => place.id === "noodle-house");
@@ -764,6 +775,7 @@ export function createWorld(canvas) {
   }
   window.addEventListener("world:find-food", onFindFood);
   function onFindCultureStreet() {
+    mapRouteActive = false;
     if (insideRoom) leaveRoom();
     hidePlace();
     autoWalkTarget = landmarks.find(place => place.id === "street-pho");
@@ -777,6 +789,98 @@ export function createWorld(canvas) {
   }
   window.addEventListener("world:find-culture", onFindCultureStreet);
 
+  function findMapPath(place) {
+    const min = -42, step = 1.4, side = 61, total = side * side;
+    const coordinate = index => min + index * step;
+    const point = index => ({ x: coordinate(index % side), z: coordinate(Math.floor(index / side)) });
+    const toIndex = (x, z) => THREE.MathUtils.clamp(Math.round((z - min) / step), 0, side - 1) * side + THREE.MathUtils.clamp(Math.round((x - min) / step), 0, side - 1);
+    const blocked = index => {
+      const p = point(index);
+      if (isBlockedOutdoor(p.x, p.z, 0.55)) return true;
+      return buildingFootprints.some(building => {
+        if (Math.abs(p.x - building.x) >= building.halfX || Math.abs(p.z - building.z) >= building.halfZ) return false;
+        return !(place.roomId && place.roomId === building.roomId && Math.hypot(p.x - place.x, p.z - place.z) <= 2.2);
+      });
+    };
+    let start = toIndex(player.position.x, player.position.z);
+    if (blocked(start)) {
+      let closest = null;
+      for (let radius = 1; radius <= 5 && closest === null; radius++) {
+        for (let dz = -radius; dz <= radius; dz++) for (let dx = -radius; dx <= radius; dx++) {
+          if (Math.abs(dx) !== radius && Math.abs(dz) !== radius) continue;
+          const candidate = toIndex(player.position.x + dx * step, player.position.z + dz * step);
+          if (!blocked(candidate)) { closest = candidate; break; }
+        }
+      }
+      if (closest === null) return null;
+      start = closest;
+    }
+    const targetBlocked = isBlockedOutdoor(place.x, place.z, 0.55);
+    const goalRadius = targetBlocked ? 7.1 : 1.7;
+    const parents = new Int32Array(total); parents.fill(-2);
+    const queue = new Int32Array(total); let read = 0, write = 0;
+    queue[write++] = start; parents[start] = -1;
+    let goal = null, best = start, bestDistance = Infinity;
+    while (read < write) {
+      const current = queue[read++], p = point(current);
+      const distance = Math.hypot(place.x - p.x, place.z - p.z);
+      if (distance < bestDistance) { best = current; bestDistance = distance; }
+      if (distance <= goalRadius) { goal = current; break; }
+      const xIndex = current % side, zIndex = Math.floor(current / side);
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = xIndex + dx, nz = zIndex + dz;
+        if (nx < 0 || nx >= side || nz < 0 || nz >= side) continue;
+        const next = nz * side + nx;
+        if (parents[next] !== -2 || blocked(next)) continue;
+        parents[next] = current; queue[write++] = next;
+      }
+    }
+    if (goal === null) { if (bestDistance > 9.5) return null; goal = best; }
+    const nodes = [];
+    for (let current = goal; current !== -1; current = parents[current]) nodes.push(point(current));
+    nodes.reverse();
+    const waypoints = [];
+    for (let i = 1; i < nodes.length; i++) {
+      const previous = nodes[i - 1], current = nodes[i], next = nodes[i + 1];
+      if (next && Math.sign(current.x - previous.x) === Math.sign(next.x - current.x) && Math.sign(current.z - previous.z) === Math.sign(next.z - current.z)) continue;
+      waypoints.push(new THREE.Vector3(current.x, 0, current.z));
+    }
+    return { end: nodes[nodes.length - 1], waypoints };
+  }
+
+  function startMapWalk(place) {
+    if (insideRoom) leaveRoom();
+    hidePlace();
+    const path = findMapPath(place);
+    if (!path) {
+      mapRouteActive = false;
+      worldMapStatus.textContent = "Couldn’t find a clear route. Walk into the plaza and try again.";
+      return;
+    }
+    mapRouteActive = true;
+    autoWalkTarget = { ...place, x: path.end.x, z: path.end.z };
+    autoWalkWaypoints = path.waypoints;
+    worldMapStatus.textContent = `Walking to ${place.name}. Use your joystick or WASD to stop and take over.`;
+    const first = autoWalkWaypoints[0] || autoWalkTarget;
+    yaw = Math.atan2(-(first.x - player.position.x), -(first.z - player.position.z));
+  }
+
+  worldMapButton?.addEventListener("click", () => {
+    const opening = worldMapPanel.hidden;
+    worldMapPanel.hidden = !opening;
+    worldMapButton.setAttribute("aria-expanded", String(opening));
+  });
+  worldMapPanel?.querySelector("[data-world-map-close]")?.addEventListener("click", () => {
+    worldMapPanel.hidden = true;
+    worldMapButton?.setAttribute("aria-expanded", "false");
+  });
+  worldMapList?.addEventListener("click", event => {
+    const button = event.target.closest("[data-map-place]");
+    if (!button) return;
+    const place = mapPlaces.find(item => item.id === button.dataset.mapPlace);
+    if (place) startMapWalk(place);
+  });
+
   function onKeyDown(event) {
     if (!visible) return;
     if (event.target?.closest?.("button, a, input, textarea, select, [contenteditable='true'], [role='dialog']")) return;
@@ -784,7 +888,7 @@ export function createWorld(canvas) {
     if (event.code === "KeyE" && !event.repeat) { openNearest(); return; }
     const emotes = { Digit1: "Wave", Digit2: "Sit", Digit3: "Dance", Digit4: "Celebrate" };
     if (emotes[event.code] && !event.repeat) { playEmote(emotes[event.code]); return; }
-    if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) { autoWalkTarget = null; autoWalkWaypoints = []; if (findSchool) findSchool.innerHTML = "🏫 Walk to the School Gate <span>along the road →</span>"; if (findCulture) findCulture.innerHTML = "🌏 Explore Culture Street <span>three stalls · three stories</span>"; }
+    if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) { autoWalkTarget = null; autoWalkWaypoints = []; if (mapRouteActive) worldMapStatus.textContent = "Walking stopped. Choose another destination or use the controls."; mapRouteActive = false; if (findSchool) findSchool.innerHTML = "🏫 Walk to the School Gate <span>along the road →</span>"; if (findCulture) findCulture.innerHTML = "🌏 Explore Culture Street <span>three stalls · three stories</span>"; }
     keys.add(event.code);
   }
   function onKeyUp(event) { keys.delete(event.code); }
@@ -873,7 +977,7 @@ export function createWorld(canvas) {
   joystick.addEventListener("pointerdown", event => {
     event.preventDefault();
     joystickPointerId = event.pointerId;
-    autoWalkTarget = null; autoWalkWaypoints = []; if (findSchool) findSchool.innerHTML = "🏫 Walk to the School Gate <span>along the road →</span>"; if (findCulture) findCulture.innerHTML = "🌏 Explore Culture Street <span>three stalls · three stories</span>";
+    autoWalkTarget = null; autoWalkWaypoints = []; if (mapRouteActive) worldMapStatus.textContent = "Walking stopped. Choose another destination or use the controls."; mapRouteActive = false; if (findSchool) findSchool.innerHTML = "🏫 Walk to the School Gate <span>along the road →</span>"; if (findCulture) findCulture.innerHTML = "🌏 Explore Culture Street <span>three stalls · three stories</span>";
     joystick.setPointerCapture(event.pointerId);
     moveJoystick(event);
   });
@@ -911,6 +1015,7 @@ export function createWorld(canvas) {
         movement.set(0, 0, 0);
       } else if (Math.hypot(dx, dz) < 1.45) {
         const destination = autoWalkTarget; autoWalkTarget = null; autoWalkWaypoints = [];
+        if (mapRouteActive) { mapRouteActive = false; worldMapPanel.hidden = true; worldMapButton?.setAttribute("aria-expanded", "false"); worldMapStatus.textContent = `You’re at ${destination.name}. Choose another place any time.`; }
         if (destination.id === "noodle-house") { if (findSchool) findSchool.textContent = "🥟 You’re at Food Street"; }
         else if (destination.id === "street-pho") { if (findCulture) findCulture.textContent = "🌏 You’re at Culture Street"; }
         else if (findSchool) findSchool.textContent = "🏫 You’re at the School Gate";
@@ -964,7 +1069,10 @@ export function createWorld(canvas) {
         const crossed = entrance.frontSign > 0 ? previousZ > entrance.facadeZ && player.position.z <= entrance.facadeZ : previousZ < entrance.facadeZ && player.position.z >= entrance.facadeZ;
         return crossed && Math.abs(player.position.x - entrance.x) < entrance.doorWidth / 2 - 0.45;
       });
-      if (entered) enterRoom(entered.roomId);
+      if (entered && mapRouteActive && entered.roomId !== autoWalkTarget?.roomId) {
+        player.position.z = previousZ; horizontalVelocity.z = 0; autoWalkTarget = null; autoWalkWaypoints = []; mapRouteActive = false;
+        worldMapStatus.textContent = `Route paused at ${rooms.get(entered.roomId)?.name || "a building"}. Choose another destination or continue walking manually.`;
+      } else if (entered) enterRoom(entered.roomId);
     }
     if (horizontalVelocity.lengthSq() > 0.025) {
       const targetHeading = Math.atan2(horizontalVelocity.x, horizontalVelocity.z);
