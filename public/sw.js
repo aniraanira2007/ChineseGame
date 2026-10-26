@@ -1,4 +1,4 @@
-const CACHE_NAME = "little-lantern-shell-v1";
+const CACHE_NAME = "little-lantern-worldmates-v2";
 const MAX_CACHED_FILE_BYTES = 20 * 1024 * 1024;
 
 self.addEventListener("install", event => {
