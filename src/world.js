@@ -128,7 +128,7 @@ export function createWorld(canvas) {
     const pearl = new THREE.Mesh(sphereGeo, mat(y === 4 ? "#c77b72" : "#d9a56c", 0.48)); pearl.position.set(24, y, -64); pearl.scale.setScalar(radius); scene.add(pearl);
   }
   const exteriorEntrances = [];
-  const roomIdByBuilding = { "Lantern Chinese School": "classroom", "Tea House": "teahouse", Bookshop: "library", "Student House": "home", "Shanghai Noodle House": "food", "Dumpling & Tea": "dumpling", "Shanghai Coffee": "cafe" };
+  const roomIdByBuilding = { "Lantern Chinese School": "classroom", "Tea House": "teahouse", Bookshop: "library", "Student House": "home", "Shanghai Noodle House": "food", "Dumpling & Tea": "dumpling", "Shanghai Coffee": "cafe", "World Culture Museum": "museum", "Art & Music Studio": "studio", "Riverside Garden": "garden" };
   function building(x, z, width, depth, height, wall, roof, label, sign = "学") {
     // Keep each real doorway facing the central road instead of drawing a fake
     // door over a solid wall on the back of the building.
@@ -272,7 +272,14 @@ export function createWorld(canvas) {
   building(32, -15, 13, 10, 5.8, materials.wallCream, materials.roofRed, "Shanghai Noodle House", "面");
   building(32, 3, 12, 10, 5.4, materials.wallPink, materials.roofDark, "Dumpling & Tea", "饺");
   building(32, 24, 13, 10, 5.5, materials.wallMint, materials.roofOrange, "Shanghai Coffee", "咖");
+  // Add a compact cultural district beyond the existing campus and food lane.
+  building(-34, -15, 12, 10, 5.6, materials.wallBlue, materials.roofDark, "World Culture Museum", "文");
+  building(17, 33, 12, 10, 5.6, materials.wallPink, materials.roofRed, "Art & Music Studio", "艺");
+  building(-34, 33, 12, 10, 5.4, materials.wallMint, materials.roofOrange, "Riverside Garden", "园");
   block(32, 0.045, 9.6, 3.4, 0.07, 19.2, materials.stone, false);
+  block(-34, 0.045, -7.5, 3.2, 0.07, 13.8, materials.stone, false);
+  block(17, 0.045, 22.2, 3.2, 0.07, 21.4, materials.stone, false);
+  block(-34, 0.045, 22.2, 3.2, 0.07, 21.4, materials.stone, false);
   // Pavilion, lanterns, planters, and alternating street trees.
   block(-1, 1.7, -24, 7, 3.4, 6, materials.wood);
   outdoorColliders.push({ type: "box", x: -1, z: -24, halfX: 5.6, halfZ: 4.8 });
@@ -366,7 +373,7 @@ export function createWorld(canvas) {
   const initialProfile = getProfile();
   let avatar = createCharacter({ characterId: initialProfile.appearance.characterId, outfitId: initialProfile.appearance.outfitId, appearance: initialProfile.appearance, playerIdentity: initialProfile.name, onStatus: updateAvatarStatus });
   let player = avatar.root;
-  function setAvatarRoomLayers(root) { root.traverse(object => { for (let layer = 1; layer <= 7; layer++) object.layers.enable(layer); }); }
+  function setAvatarRoomLayers(root) { root.traverse(object => { for (let layer = 1; layer <= 10; layer++) object.layers.enable(layer); }); }
   setAvatarRoomLayers(player);
   player.scale.setScalar(0.92 * player.userData.renderScale);
   scene.add(player);
@@ -382,6 +389,9 @@ export function createWorld(canvas) {
     { id: "noodle-house", name: "Shanghai Noodle House", x: 32, z: -8.2, icon: "面", detail: "Order a bowl of Shanghai-style noodles, learn the food words, and sit at the shared table.", action: "Enter the noodle house", route: "room", roomId: "food", requireWords: 5, color: "#d68c55" },
     { id: "dumpling-tea", name: "Dumpling & Tea", x: 32, z: -0.4, icon: "饺", detail: "Explore a little local food shop with dumplings, tea, and a Chinese menu.", action: "Enter the food shop", route: "room", roomId: "dumpling", color: "#b97b91" },
     { id: "coffee", name: "Shanghai Coffee House", x: 32, z: 16.7, icon: "咖", detail: "Take a quiet break in a Shanghai-inspired coffee shop. Sit at a little table and learn a café phrase.", action: "Enter the coffee shop", route: "room", roomId: "cafe", color: "#81a987" },
+    { id: "museum", name: "World Culture Museum", x: -34, z: -8.3, icon: "文", detail: "Explore a small gallery of culture cards and practise describing places, food, and daily life.", action: "Enter the museum", route: "room", roomId: "museum", color: "#7a9abe" },
+    { id: "art-studio", name: "Art & Music Studio", x: 17, z: 24.7, icon: "艺", detail: "Take a creative break, learn art and music words, and join a quiet study circle.", action: "Enter the art studio", route: "room", roomId: "studio", color: "#cf83a3" },
+    { id: "riverside-garden", name: "Riverside Garden", x: -34, z: 24.7, icon: "园", detail: "Relax among the flowers, review your word collection, or sit by the garden table.", action: "Enter the garden pavilion", route: "room", roomId: "garden", color: "#7cab79" },
     { id: "pavilion", name: "Friendship Pavilion", x: -1, z: -20, icon: "友", detail: "Study circle classmates here are NPCs; real shared rooms need a multiplayer server.", action: "Open study circle", route: "school", schoolTab: "circle", requireWords: 10, color: "#bd86a4" },
     { id: "street-pho", name: "Hanoi Phở Stall", x: 18, z: -24.2, icon: "越", detail: "Meet the Hanoi breakfast cook, learn what goes into phở, and add a Vietnam culture card to your journal.", action: "Discover Vietnamese food", route: "school", schoolTab: "culture", cultureSpot: "pho", color: "#d96b56" },
     { id: "street-yatai", name: "Japanese Festival Yatai", x: 26, z: -24.2, icon: "祭", detail: "Explore a matsuri food stall, learn what yatai means, and save a Japan culture card.", action: "Explore festival food", route: "school", schoolTab: "culture", cultureSpot: "yatai", color: "#6d91b4" },
@@ -440,6 +450,9 @@ export function createWorld(canvas) {
     { id: "food", name: "Shanghai Food Street", x: 141, z: 65, layer: 5, wall: "#f2dfc4", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -8.2], doorWidth: 3.2, stations: [{ id: "food-order", label: "Order with Lin", x: 0, z: 0, icon: "面", tab: "order" }, { id: "food-timer", label: "Timed Food Street Challenge", x: -3.3, z: 3.6, icon: "计", tab: "timedfood" }, { id: "food-table", label: "Weekly word book", x: 3.2, z: 3.6, icon: "饺", tab: "words" }] },
     { id: "dumpling", name: "Dumpling & Tea", x: 160, z: 65, layer: 6, wall: "#f1d7d7", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -0.4], doorWidth: 3.2, stations: [{ id: "dumpling-menu", label: "Dumpling menu", x: 0, z: 0, icon: "饺", tab: "lesson" }, { id: "dumpling-table", label: "Tea table", x: 3.2, z: 3.6, icon: "茶", tab: "talk" }] },
     { id: "cafe", name: "Shanghai Coffee House", x: 179, z: 65, layer: 7, wall: "#dce9dd", trim: "#547b68", floor: "#c9b493", width: 14, depth: 16, height: 5, outside: [32, 16.7], doorWidth: 3.2, stations: [{ id: "coffee-menu", label: "Coffee & tea menu", x: 0, z: 0, icon: "咖", tab: "talk" }, { id: "coffee-reading", label: "Window reading table", x: -3.4, z: 3.4, icon: "书", tab: "words" }] },
+    { id: "museum", name: "World Culture Museum", x: 198, z: 65, layer: 8, wall: "#e2e5ef", trim: "#647b9a", floor: "#c6b89f", width: 16, depth: 18, height: 5.4, outside: [-34, -8.3], doorWidth: 3.2, stations: [{ id: "museum-cards", label: "Culture gallery", x: -3.5, z: 1.5, icon: "文", tab: "culture" }, { id: "museum-words", label: "Travel word archive", x: 3.5, z: 1.5, icon: "书", tab: "words" }] },
+    { id: "studio", name: "Art & Music Studio", x: 217, z: 65, layer: 9, wall: "#f0dfe6", trim: "#a65d7b", floor: "#c9ad91", width: 16, depth: 18, height: 5.4, outside: [17, 24.7], doorWidth: 3.2, stations: [{ id: "studio-circle", label: "Creative study circle", x: -3.5, z: 1.5, icon: "艺", tab: "circle" }, { id: "studio-lesson", label: "Art & music words", x: 3.5, z: 1.5, icon: "音", tab: "lesson" }] },
+    { id: "garden", name: "Riverside Garden Pavilion", x: 236, z: 65, layer: 10, wall: "#dcebdc", trim: "#5c8763", floor: "#c2a984", width: 16, depth: 18, height: 5.4, outside: [-34, 24.7], doorWidth: 3.2, stations: [{ id: "garden-words", label: "Garden word book", x: -3.5, z: 1.5, icon: "书", tab: "words" }, { id: "garden-circle", label: "Quiet practice circle", x: 3.5, z: 1.5, icon: "园", tab: "circle" }] },
   ];
   const roomMarkers = [];
   const rooms = new Map();
@@ -535,6 +548,45 @@ export function createWorld(canvas) {
         roomBox(group, chairX, 0.48, chairZ, 0.72, 0.14, 0.72, trim); roomBox(group, chairX, 0.88, chairZ - 0.34, 0.72, 0.8, 0.12, wood);
         sitSpots.push({ x: chairX, z: chairZ, yaw: 0 });
       }
+    } else if (config.id === "museum") {
+      // Three framed gallery panels and low display stands make this room
+      // read as a museum rather than another copy of the tea room.
+      const frame = mat("#765d48");
+      const panelColors = ["#c96f58", "#6385a3", "#77a17c"];
+      for (let i = 0; i < 3; i++) {
+        const x = (i - 1) * 4.4;
+        roomBox(group, x, 2.45, 7.45, 3.25, 2.15, 0.18, frame);
+        roomBox(group, x, 2.45, 7.3, 2.9, 1.8, 0.08, mat(panelColors[i]));
+        roomBox(group, x, 0.82, 4.1, 2.2, 0.18, 1.2, wood);
+        addRoomLabel(group, ["食物 · FOOD", "城市 · CITIES", "节日 · FESTIVALS"][i], x, 2.48, 7.22, "#fff5d8", 2.6, 0.6);
+      }
+      roomBox(group, 0, 0.82, -2.8, 3.6, 0.18, 1.3, wood);
+      sitSpots.push({ x: 0, z: -2.8, yaw: Math.PI });
+    } else if (config.id === "studio") {
+      // Bright creative room: easels, colored canvases and a small keyboard.
+      for (let i = 0; i < 3; i++) {
+        const x = -4.8 + i * 4.8;
+        const canvas = mat(["#e78d94", "#e5bd67", "#75a7ba"][i]);
+        roomBox(group, x, 1.95, 5.1, 1.65, 1.9, 0.16, wood);
+        roomBox(group, x, 2.02, 4.98, 1.3, 1.5, 0.08, canvas);
+        roomBox(group, x - 0.65, 0.9, 5.25, 0.12, 1.7, 0.12, trim);
+        roomBox(group, x + 0.65, 0.9, 5.25, 0.12, 1.7, 0.12, trim);
+      }
+      roomBox(group, 0, 0.95, -3.1, 4.2, 0.3, 1.4, wood);
+      for (let i = 0; i < 8; i++) roomBox(group, -1.65 + i * 0.47, 1.15, -3.1, 0.32, 0.08, 0.9, i % 2 ? materials.white : materials.roofDark);
+      for (const x of [-2.8, 2.8]) { roomBox(group, x, 0.52, -1.2, 0.8, 0.14, 0.8, trim); sitSpots.push({ x, z: -1.2, yaw: Math.PI }); }
+    } else if (config.id === "garden") {
+      // A calm conservatory with planters and a central shared reading table.
+      for (const x of [-5.5, 5.5]) {
+        roomBox(group, x, 0.42, 3.0, 1.3, 0.72, 1.3, trim);
+        for (let i = 0; i < 3; i++) {
+          const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.38, 8, 7), mat(i % 2 ? "#6f9e70" : "#89b77a"));
+          leaf.position.set(x + (i - 1) * 0.28, 1.1 + (i % 2) * 0.14, 3.0); leaf.scale.set(0.75, 1.4, 0.75); group.add(leaf);
+        }
+      }
+      roomBox(group, 0, 0.92, -1.5, 3.8, 0.18, 1.6, wood);
+      for (const x of [-1.45, 1.45]) for (const z of [-2.0, -1.0]) roomBox(group, x, 0.48, z, 0.12, 0.82, 0.12, trim);
+      for (const x of [-2.7, 2.7]) { roomBox(group, x, 0.5, -1.5, 0.8, 0.14, 0.8, trim); sitSpots.push({ x, z: -1.5, yaw: Math.PI }); }
     } else if (config.id === "food" || config.id === "dumpling") {
       // A compact Shanghai-style dining room with a counter, menu board,
       // dumpling baskets, bowls and a long table for vocabulary practice.
