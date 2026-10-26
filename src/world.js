@@ -386,21 +386,58 @@ export function createWorld(canvas) {
     { id: "street-pho", name: "Hanoi Phở Stall", x: 18, z: -24.2, icon: "越", detail: "Meet the Hanoi breakfast cook, learn what goes into phở, and add a Vietnam culture card to your journal.", action: "Discover Vietnamese food", route: "school", schoolTab: "culture", cultureSpot: "pho", color: "#d96b56" },
     { id: "street-yatai", name: "Japanese Festival Yatai", x: 26, z: -24.2, icon: "祭", detail: "Explore a matsuri food stall, learn what yatai means, and save a Japan culture card.", action: "Explore festival food", route: "school", schoolTab: "culture", cultureSpot: "yatai", color: "#6d91b4" },
     { id: "street-xiaolongbao", name: "Shanghai Soup Dumplings", x: 34, z: -24.2, icon: "沪", detail: "Discover Shanghai xiaolongbao, try a food-safety question, and save a city culture card.", action: "Discover Shanghai food", route: "school", schoolTab: "culture", cultureSpot: "xiaolongbao", color: "#ce9561" },
+    { id: "hunt-lantern", name: "Word Hunt · Lantern", x: 8, z: -17, icon: "灯", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "lantern", color: "#de7750" },
+    { id: "hunt-book", name: "Word Hunt · Book", x: -10, z: 18, icon: "书", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "book", color: "#658ab5" },
+    { id: "hunt-tea", name: "Word Hunt · Tea Cup", x: 10, z: 18, icon: "茶", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "tea", color: "#78a677" },
+    { id: "hunt-bun", name: "Word Hunt · Steamed Bun", x: -20, z: 18, icon: "包", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "bun", color: "#c99b68" },
+    { id: "hunt-apple", name: "Word Hunt · Apple", x: 21, z: 18, icon: "果", detail: "A Word Hunt object. Open the Chinese clue, listen, then check whether this is the object you need.", action: "Check this object", route: "school", schoolTab: "hunt", huntId: "apple", color: "#bc645a" },
   ];
+  // Five low-poly props make the Word Hunt targets visible in the playable plaza.
+  function huntProp(x, z, kind) {
+    const group = new THREE.Group(); group.position.set(x, 0, z); scene.add(group);
+    const part = (geometry, material, px, py, pz, sx = 1, sy = 1, sz = 1) => { const mesh = new THREE.Mesh(geometry, material); mesh.position.set(px, py, pz); mesh.scale.set(sx, sy, sz); mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); return mesh; };
+    if (kind === "lantern") {
+      part(new THREE.CylinderGeometry(0.08, 0.08, 0.35, 8), materials.gold, 0, 2.05, 0);
+      const body = part(new THREE.SphereGeometry(0.64, 12, 10), mat("#cf5545"), 0, 1.43, 0, 0.68, 0.9, 0.68);
+      body.material.emissive = new THREE.Color("#802b20"); body.material.emissiveIntensity = 0.18;
+      part(new THREE.CylinderGeometry(0.37, 0.37, 0.09, 10), materials.gold, 0, 1.91, 0);
+    } else if (kind === "book") {
+      part(boxGeo, mat("#3f7287"), 0, 0.44, 0, 0.9, 0.16, 0.72);
+      part(boxGeo, mat("#fff3d8"), 0, 0.72, 0, 0.84, 0.42, 0.68);
+      part(boxGeo, mat("#be654f"), -0.36, 0.72, 0, 0.1, 0.44, 0.72);
+      part(boxGeo, materials.gold, 0, 0.94, 0, 0.12, 0.1, 0.08);
+    } else if (kind === "tea") {
+      part(new THREE.CylinderGeometry(0.34, 0.27, 0.42, 12), mat("#f3ead5"), 0, 0.43, 0);
+      part(new THREE.CylinderGeometry(0.27, 0.27, 0.13, 12), mat("#9f694a"), 0, 0.61, 0);
+      part(new THREE.TorusGeometry(0.22, 0.055, 6, 12), mat("#f3ead5"), 0.33, 0.49, 0).rotation.y = Math.PI / 2;
+      part(new THREE.CylinderGeometry(0.5, 0.54, 0.12, 12), materials.wood, 0, 0.08, 0);
+    } else if (kind === "bun") {
+      part(new THREE.CylinderGeometry(0.55, 0.58, 0.24, 12), materials.wood, 0, 0.16, 0);
+      const bun = part(new THREE.SphereGeometry(0.47, 12, 10), mat("#fff4df"), 0, 0.57, 0, 1, 0.8, 1);
+      bun.rotation.y = 0.3;
+      part(new THREE.ConeGeometry(0.12, 0.24, 7), mat("#fff4df"), 0, 0.94, 0);
+    } else {
+      const apple = part(new THREE.SphereGeometry(0.48, 12, 10), mat("#d9473f"), 0, 0.58, 0, 1, 0.88, 1);
+      apple.material.roughness = 0.42;
+      part(new THREE.CylinderGeometry(0.045, 0.06, 0.25, 6), mat("#76573c"), 0, 1.02, 0);
+      part(new THREE.SphereGeometry(0.15, 8, 6), materials.leafLight, 0.15, 1.08, 0, 1.3, 0.45, 0.7);
+    }
+  }
+  huntProp(8, -17, "lantern"); huntProp(-10, 18, "book"); huntProp(10, 18, "tea"); huntProp(-20, 18, "bun"); huntProp(21, 18, "apple");
   const markers = [];
   for (const place of landmarks) {
     const markerMat = new THREE.MeshStandardMaterial({ color: place.color, emissive: place.color, emissiveIntensity: 0.22, transparent: true, opacity: 0.9 });
-    const orb = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), markerMat); orb.position.set(place.x, 2.2, place.z); orb.userData.place = place; scene.add(orb);
+    const orb = new THREE.Mesh(new THREE.OctahedronGeometry(place.huntId ? 0.28 : 0.45, 0), markerMat); orb.position.set(place.x, place.huntId ? 2.65 : 2.2, place.z); orb.userData.place = place; scene.add(orb);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.055, 6, 18), new THREE.MeshBasicMaterial({ color: place.color })); ring.position.set(place.x, 0.13, place.z); ring.rotation.x = -Math.PI / 2; scene.add(ring);
     markers.push({ orb, ring, place });
   }
 
   const roomConfigs = [
-    { id: "classroom", name: "Worldmates School", x: 65, z: 65, layer: 1, wall: "#ead8b7", trim: "#a95f4d", floor: "#cba77a", width: 22, depth: 22, height: 6.5, outside: [-17, -5.2], doorWidth: 3.6, stations: [{ id: "class-desk", label: "Daily food quest board", x: 0, z: 0, icon: "学", tab: "foodquest" }, { id: "class-board", label: "HSK 1 board", x: 3.2, z: 4, icon: "书", tab: "hsk" }] },
+    { id: "classroom", name: "Worldmates School", x: 65, z: 65, layer: 1, wall: "#ead8b7", trim: "#a95f4d", floor: "#cba77a", width: 22, depth: 22, height: 6.5, outside: [-17, -5.2], doorWidth: 3.6, stations: [{ id: "class-desk", label: "Chinese Classroom · Teacher Lin", x: 0, z: 0, icon: "学", tab: "classroom" }, { id: "class-food-quest", label: "Daily food quest board", x: -3.2, z: 4, icon: "🥟", tab: "foodquest" }, { id: "class-board", label: "HSK 1 board", x: 3.2, z: 4, icon: "书", tab: "hsk" }] },
     { id: "library", name: "Campus Library", x: 84, z: 65, layer: 2, wall: "#dae7df", trim: "#527b68", floor: "#c9b493", outside: [-18, 10.4], doorWidth: 3.2, stations: [{ id: "library-table", label: "Reading table", x: 0, z: 0, icon: "书", tab: "words" }, { id: "library-shelf", label: "HSK study shelf", x: -3.8, z: 3.2, icon: "学", tab: "hsk" }] },
     { id: "home", name: "Student House", x: 103, z: 65, layer: 3, wall: "#f0dfd3", trim: "#b96f62", floor: "#bd966c", outside: [-34, 10.4], doorWidth: 3.2, stations: [{ id: "homework-desk", label: "Homework desk", x: 0, z: 0, icon: "文", tab: "lesson" }, { id: "home-books", label: "Family bookcase", x: 3.5, z: 3.4, icon: "书", tab: "words" }] },
-    { id: "teahouse", name: "School Tea House", x: 122, z: 65, layer: 4, wall: "#d7e5e7", trim: "#54818b", floor: "#c69b6b", outside: [17, -8.3], doorWidth: 3.2, stations: [{ id: "mei-corner", label: "Mei’s tea table", x: 0, z: 0, icon: "茶", tab: "talk" }, { id: "tea-reading", label: "Tea & reading", x: -3.5, z: 3.2, icon: "书", tab: "words" }] },
-    { id: "food", name: "Shanghai Food Street", x: 141, z: 65, layer: 5, wall: "#f2dfc4", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -8.2], doorWidth: 3.2, stations: [{ id: "food-order", label: "Order with Lin", x: 0, z: 0, icon: "面", tab: "order" }, { id: "food-table", label: "Weekly word book", x: 3.2, z: 3.6, icon: "饺", tab: "words" }] },
+    { id: "teahouse", name: "School Tea House", x: 122, z: 65, layer: 4, wall: "#d7e5e7", trim: "#54818b", floor: "#c69b6b", outside: [17, -8.3], doorWidth: 3.2, stations: [{ id: "mei-corner", label: "NPC Conversation Quests", x: 0, z: 0, icon: "梅", tab: "npcquests" }, { id: "mei-chat", label: "Mei’s tea table", x: 3.4, z: 3.2, icon: "茶", tab: "talk" }, { id: "tea-reading", label: "Tea & reading", x: -3.5, z: 3.2, icon: "书", tab: "words" }] },
+    { id: "food", name: "Shanghai Food Street", x: 141, z: 65, layer: 5, wall: "#f2dfc4", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -8.2], doorWidth: 3.2, stations: [{ id: "food-order", label: "Order with Lin", x: 0, z: 0, icon: "面", tab: "order" }, { id: "food-timer", label: "Timed Food Street Challenge", x: -3.3, z: 3.6, icon: "计", tab: "timedfood" }, { id: "food-table", label: "Weekly word book", x: 3.2, z: 3.6, icon: "饺", tab: "words" }] },
     { id: "dumpling", name: "Dumpling & Tea", x: 160, z: 65, layer: 6, wall: "#f1d7d7", trim: "#a94f38", floor: "#c99b68", width: 14, depth: 16, height: 5, outside: [32, -0.4], doorWidth: 3.2, stations: [{ id: "dumpling-menu", label: "Dumpling menu", x: 0, z: 0, icon: "饺", tab: "lesson" }, { id: "dumpling-table", label: "Tea table", x: 3.2, z: 3.6, icon: "茶", tab: "talk" }] },
     { id: "cafe", name: "Shanghai Coffee House", x: 179, z: 65, layer: 7, wall: "#dce9dd", trim: "#547b68", floor: "#c9b493", width: 14, depth: 16, height: 5, outside: [32, 16.7], doorWidth: 3.2, stations: [{ id: "coffee-menu", label: "Coffee & tea menu", x: 0, z: 0, icon: "咖", tab: "talk" }, { id: "coffee-reading", label: "Window reading table", x: -3.4, z: 3.4, icon: "书", tab: "words" }] },
   ];
@@ -624,7 +661,7 @@ export function createWorld(canvas) {
       if (isLocked) return;
       const firstVisit = rewardWorldVisit(place.id);
       if (place.route === "room") { enterRoom(place.roomId); return; }
-      if (place.route === "school") { hidePlace(); window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: place.schoolTab, cultureSpot: place.cultureSpot } })); return; }
+      if (place.route === "school") { hidePlace(); window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: place.schoolTab, cultureSpot: place.cultureSpot, huntSpot: place.huntId } })); return; }
       dialog.querySelector(".interaction-action").textContent = firstVisit ? "Discovery saved · +5 XP · +1 coin ✧" : "You’ve explored this spot ✧";
       dialog.querySelector(".interaction-action").disabled = true;
     });
