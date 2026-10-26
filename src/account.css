@@ -1,0 +1,39 @@
+.profile-modal{max-height:min(90vh,860px);overflow-y:auto}
+.public-profile-editor,.account-box{margin:17px 0;padding:16px;border:1px solid #e7e8df;border-radius:10px;background:#fff}
+.public-profile-editor h3,.account-box h3{margin:0;font:800 15px 'Nunito',sans-serif;color:#405544}
+.public-profile-editor>p,.account-feedback{margin:6px 0 12px;color:#838a80;font-size:10px;line-height:1.55}
+.account-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.account-profile-grid label,.account-box form>label{display:grid;gap:5px;color:#697267;font-size:10px;font-weight:700}
+.account-profile-grid input,.account-profile-grid select,.account-profile-grid textarea,.account-box input{box-sizing:border-box;width:100%;border:1px solid #e1e5dc;border-radius:7px;padding:9px;background:#fffefa;color:#475347;font:inherit;font-weight:500;outline-color:#89aa91}
+.account-profile-grid textarea{resize:vertical;min-height:66px}
+.account-bio-label{grid-column:1/-1}
+.interest-picker{display:flex;flex-wrap:wrap;gap:7px;border:0;margin:12px 0;padding:0}
+.interest-picker legend{width:100%;margin-bottom:4px;color:#697267;font-size:10px;font-weight:800}
+.interest-picker label{display:flex;align-items:center;gap:5px;border:1px solid #e7e9e1;border-radius:99px;padding:6px 9px;color:#737c70;font-size:9px;cursor:pointer}
+.interest-picker input{accent-color:#658a70}
+.account-save-profile,.account-signout{width:100%;border:1px solid #dce5db;border-radius:7px;padding:10px;background:#f4f7f1;color:#52745b;font-size:10px;font-weight:800;cursor:pointer}
+.account-feedback[data-kind=success]{color:#4f805c}.account-feedback[data-kind=error]{color:#a6504e}
+.account-box{background:#f8f8f3}
+.account-box-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.account-kicker{margin:0 0 4px;color:#ac8658;font-size:8px;font-weight:900;letter-spacing:1px}
+.account-state-pill{border-radius:99px;padding:5px 8px;background:#eee;color:#7f857d;font-size:8px;font-weight:800;white-space:nowrap}
+.account-state-pill[data-connected=true]{background:#e9f3e9;color:#56805f}
+.account-box form{display:grid;gap:9px}
+.account-mode-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.account-mode-buttons button{border:1px solid #e4e6de;border-radius:7px;padding:8px;background:#fff;color:#81877d;font-size:9px;font-weight:700;cursor:pointer}
+.account-mode-buttons button.selected{border-color:#7f9e83;background:#f1f6ef;color:#4d7155}
+.account-box .primary-btn{width:100%;padding:10px}
+.account-box button:disabled{opacity:.55;cursor:not-allowed}
+.account-privacy{display:block;margin-top:10px;color:#92978f;font-size:9px;line-height:1.5}
+.account-directory-open{width:100%;margin-top:9px;border:0;border-radius:7px;padding:9px;background:#fff;color:#5b765f;font-size:10px;font-weight:800;cursor:pointer}
+.account-directory-open:disabled{opacity:.55;cursor:not-allowed}
+.student-directory{margin-top:10px;border-top:1px solid #e7e8df;padding-top:10px}
+.student-directory>label{display:grid;gap:5px;color:#697267;font-size:10px;font-weight:700}
+.student-directory>label input{width:100%;box-sizing:border-box;border:1px solid #e1e5dc;border-radius:7px;padding:9px;background:#fff;color:#475347;font:inherit}
+.student-directory-card{display:flex;gap:9px;margin-top:8px;padding:10px;border:1px solid #e8e9e2;border-radius:8px;background:#fff}
+.student-directory-avatar{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#f4e9dd;color:#55745c;font:700 15px 'Nunito',sans-serif}
+.student-directory-card b,.student-directory-card small{display:block}
+.student-directory-card b{color:#465447;font-size:10px}
+.student-directory-card small{margin-top:3px;color:#90968d;font-size:8px}
+.student-directory-card p{margin:5px 0 0;color:#737b71;font-size:9px;line-height:1.45;overflow-wrap:anywhere}
+@media(max-width:500px){.profile-modal{padding:18px;max-height:92dvh}.account-profile-grid{grid-template-columns:1fr}.account-bio-label{grid-column:auto}.public-profile-editor,.account-box{padding:13px}}

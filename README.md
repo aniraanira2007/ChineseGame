@@ -1,6 +1,6 @@
-# Little Lantern
+# Worldmates
 
-Little Lantern is one website with two connected modes: a picture based Mandarin lesson and a playable, single player 3D plaza. The project keeps the original HTML/CSS structure and uses Three.js for the world.
+Worldmates is a school-inspired social learning world for students to meet across cultures, make friends, learn languages, and share everyday life. This website currently includes a playable single-player 3D plaza and Chinese lessons. Real shared rooms and multiplayer are not connected yet.
 
 ## Run it locally
 
@@ -25,9 +25,22 @@ To connect the counters:
 
 The site stores a random browser ID to avoid counting the same browser profile repeatedly, and a separate temporary session ID for the online indicator. No player names are sent. Because this is a public anonymous counter, determined visitors could manipulate the totals; use it as an approximate count, not audited analytics. Visitors who clear their browser data or use another device may count again.
 
+## Accounts and public student cards
+
+Worldmates includes email sign-up and sign-in, an editable student card, a signed-in student directory, and per-account progress syncing. These features stay in device-only mode until Supabase is configured. Profile cards contain only a display name, optional country, preferred language, short bio, interests, and avatar appearance. Email addresses are never shown to other students. XP, coins, streaks, and lesson history are saved to an owner-only table.
+
+To enable accounts and cloud saves:
+
+1. In the Supabase SQL Editor, run `supabase/worldmates-profiles.sql`.
+2. In Supabase Authentication settings, enable email sign-in and choose whether new accounts require email verification.
+3. Copy `.env.example` to `.env.local`; set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` using the project's URL and public anon/publishable key. Never use a `service_role` key in the browser.
+4. Restart the local Vite server. For the GitHub Pages build, add the same two `VITE_SUPABASE_*` values as Actions variables and run the deploy workflow again.
+
+The database uses Row Level Security. Signed-in users can view public student cards; each user can read or edit only their own private save. The directory lists student cards, not verified online presence. Real-time multiplayer, friend requests, and chat are separate work and are not enabled by accounts alone.
+
 ## iPhone App Store build
 
-The web game is prepared to be packaged as a native iOS app with Capacitor. The App Store version uses the built game files locally inside the app, while the public website remains available separately. The configured display name is **Little Lantern**, and its bundle identifier is `com.aniraanira2007.littlelantern`.
+The web game is prepared to be packaged as a native iOS app with Capacitor. The App Store version uses the built game files locally inside the app, while the public website remains available separately. The configured display name is **Worldmates**. Its existing bundle identifier remains `com.aniraanira2007.littlelantern` to preserve the current app identity.
 
 To create and run the iOS project, use a Mac with Xcode installed:
 
@@ -43,6 +56,8 @@ This Windows workspace cannot sign, run, archive, or submit an iOS app because t
 - `index.html` — shared site shell, home page, Study Mode, Social World, and player dialogs.
 - `styles.css` and `world.css` — shared site styling and responsive world UI.
 - `src/app.js` — Home/Study/World navigation, question feedback, shared profile UI, and rewards.
+- `src/account.js` / `src/account.css` — optional Supabase email accounts, student card editing, directory, and cloud save syncing.
+- `supabase/worldmates-profiles.sql` — public student cards plus owner-only private game saves with Row Level Security.
 - `src/questions.js` — the Stage 1 picture questions.
 - `src/profile.js` — local saved player name, avatar color, XP, coins, lesson count, level, and achievements.
 - `src/world.js` — Three.js plaza, avatar, camera, keyboard/touch movement, jump, run, and location interactions.
@@ -62,12 +77,13 @@ This Windows workspace cannot sign, run, archive, or submit an iOS app because t
 - The default female avatar is a real skinned anime model with a 106-bone rig and authored idle/run clips. The existing loader shares it across Character Studio, profile preview, and the playable world.
 - Walk uses the supplied run animation at a slower playback rate. Jump and landing remain driven by the existing world physics with simple avatar pose feedback. Wave, sit, dance, and celebrate use procedural poses because the model does not include matching named clips.
 - The Social World labels the room as private solo play; no fake online users are shown.
+- Student cards can be edited and saved locally. Supabase account and cloud sync controls activate when the project URL, public key, and profile SQL are configured.
 
 ## Multiplayer and communication
 
 The local room and its location interaction points are structured separately from the renderer so a shared-room transport can be added later. There is no realtime server configured in this project, so multiplayer, text chat, and proximity voice chat are not active. They will need a hosted room service (or a WebSocket/WebRTC backend), authentication, and moderation/privacy controls before real communication is enabled. Mute, block, and report controls are therefore not shown as if they already worked.
 
-Progress is device-local. Accounts and cross-device/cloud saving require a database and authentication service, neither of which is configured here.
+When Supabase is configured, email account sessions, public student cards, and private cloud saves are available. Without those settings, profile and game progress remain saved on the current device.
 
 ## Character asset notes
 

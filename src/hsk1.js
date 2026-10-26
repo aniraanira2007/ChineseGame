@@ -1,6 +1,6 @@
 import vocabulary from "./data/hsk1-vocabulary.json";
 import grammarData from "./data/hsk1-grammar.json";
-import { getProfile, rewardStudyAnswer, updateProfile } from "./profile.js";
+import { addLearnedWord, getProfile, recordDailyFoodWord, rewardStudyAnswer, updateProfile } from "./profile.js";
 
 const WORDS_PER_UNIT = 15;
 const UNIT_COUNT = Math.ceil(vocabulary.words.length / WORDS_PER_UNIT);
@@ -43,7 +43,7 @@ export function mountHsk1Course(root) {
           <div class="hsk-medallion" aria-hidden="true"><span>HSK</span><b>1</b><small>你好</small></div>
         </div>
         <div class="hsk-progress-panel"><div class="hsk-progress-copy"><b>${studiedCount()} / ${vocabulary.words.length} vocabulary entries</b><span>${passed} / ${UNIT_COUNT} lessons passed · ${grammar.length} grammar points</span></div><div class="hsk-progress-track"><i style="width:${vocabPct}%"></i></div></div>
-        <nav class="hsk-actions" aria-label="HSK 1 activities"><button class="hsk-action-btn" data-open-grammar>Grammar review <span>${progress.grammarDone ? "✓ Complete" : `${grammar.length} points`}</span></button><button class="hsk-action-btn" data-picture-practice>Picture practice <span>Original Study Mode</span></button><button class="hsk-action-btn hsk-exam-btn" data-final-exam ${courseReady() ? "" : "disabled"}>Final assessment <span>${courseReady() ? "Ready" : "Pass all lessons + review grammar"}</span></button></nav>
+        <nav class="hsk-actions" aria-label="HSK 1 activities"><button class="hsk-action-btn" data-open-grammar>Grammar review <span>${progress.grammarDone ? "✓ Complete" : `${grammar.length} points`}</span></button><button class="hsk-action-btn" data-picture-practice>Picture practice <span>Campus activity</span></button><button class="hsk-action-btn hsk-exam-btn" data-final-exam ${courseReady() ? "" : "disabled"}>Final assessment <span>${courseReady() ? "Ready" : "Pass all lessons + review grammar"}</span></button></nav>
         <div class="hsk-section-heading"><div><p class="hsk-kicker">YOUR LEARNING PATH</p><h3>Vocabulary lessons</h3></div><span>${vocabulary.words.length} words in ${UNIT_COUNT} short lessons</span></div>
         <div class="hsk-unit-grid">${Array.from({ length: UNIT_COUNT }, (_, i) => {
           const words = unitWords(i);
@@ -110,7 +110,7 @@ export function mountHsk1Course(root) {
   function renderCertificate() {
     const record = progress.certificate;
     const date = new Date(record.date).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-    return `<section class="hsk-certificate-wrap"><article class="hsk-certificate" id="hsk-certificate"><div class="certificate-border"><p class="certificate-kicker">LITTLE LANTERN · CHINESE LEARNING GAME</p><div class="certificate-seal">灯</div><h2>Certificate of Completion</h2><p class="certificate-copy">This certificate is awarded to</p><h3>${escapeHtml(record.name)}</h3><p class="certificate-copy">for completing the HSK 3.0 Level 1 learning course, including all 300 vocabulary entries, 45 grammar points, and the final assessment.</p><p class="certificate-score">Final assessment score: <b>${record.score}%</b></p><div class="certificate-footer"><span>${date}</span><span>HSK 1 · Independent learning course</span></div><p class="certificate-disclaimer">Game-issued course completion certificate. It is not an official HSK test score report or credential.</p></div></article><button class="primary-btn certificate-print" data-print-certificate>Print / Save as PDF <span>↗</span></button></section>`;
+    return `<section class="hsk-certificate-wrap"><article class="hsk-certificate" id="hsk-certificate"><div class="certificate-border"><p class="certificate-kicker">WORLDMATES · CHINESE LEARNING WORLD</p><div class="certificate-seal">灯</div><h2>Certificate of Completion</h2><p class="certificate-copy">This certificate is awarded to</p><h3>${escapeHtml(record.name)}</h3><p class="certificate-copy">for completing the HSK 3.0 Level 1 learning course, including all 300 vocabulary entries, 45 grammar points, and the final assessment.</p><p class="certificate-score">Final assessment score: <b>${record.score}%</b></p><div class="certificate-footer"><span>${date}</span><span>HSK 1 · Independent learning course</span></div><p class="certificate-disclaimer">Game-issued course completion certificate. It is not an official HSK test score report or credential.</p></div></article><button class="primary-btn certificate-print" data-print-certificate>Print / Save as PDF <span>↗</span></button></section>`;
   }
 
   function render() {
@@ -146,7 +146,14 @@ export function mountHsk1Course(root) {
         if (text === q.answer) option.classList.add("is-correct");
         else if (option === button) option.classList.add("is-wrong");
       });
-      if (correct) { quiz.score += 1; rewardStudyAnswer(true); }
+      if (correct) {
+        quiz.score += 1;
+        rewardStudyAnswer(true);
+        if (q.chinese) {
+          const entry = vocabulary.words.find(word => word.hanzi === q.prompt);
+          if (entry) { addLearnedWord(entry); recordDailyFoodWord(entry.hanzi); }
+        }
+      }
       root.querySelector(".hsk-feedback").textContent = correct ? "Correct! Nicely done." : `Not quite — the answer is ${q.answer}.`;
       root.querySelector(".hsk-next").disabled = false;
     } else if (button.hasAttribute("data-quiz-next") && quiz) {

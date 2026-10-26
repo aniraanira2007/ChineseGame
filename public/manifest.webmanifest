@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Little Lantern — Learn Chinese",
-  "short_name": "Little Lantern",
-  "description": "A playful place to learn Mandarin and explore Lantern Plaza.",
+  "name": "Worldmates — Meet, learn, and share cultures",
+  "short_name": "Worldmates",
+  "description": "A school world where students meet, make friends, learn languages, and share cultures.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

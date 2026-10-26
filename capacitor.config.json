@@ -1,6 +1,6 @@
 {
   "appId": "com.aniraanira2007.littlelantern",
-  "appName": "Little Lantern",
+  "appName": "Worldmates",
   "webDir": "dist",
   "ios": {
     "contentInset": "automatic"

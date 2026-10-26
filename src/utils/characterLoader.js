@@ -18,8 +18,11 @@ const assetCache = new Map();
 let mageTexturePromise;
 let maidTexturePromise;
 const catalogById = new Map(catalog.freeCharacters.map(character => [character.id, character]));
-const maidModelUrl = "/assets/models/characters/maid/Maid.fbx";
-const pumpkinModelUrl = "/assets/models/characters/jack-pumpkin/Jack.fbx";
+// Public assets must respect Vite's base path (for example /ChineseGame/ on
+// GitHub Pages) as well as the root path used by the local dev server.
+const publicAssetUrl = path => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, "")}`;
+const maidModelUrl = publicAssetUrl("assets/models/characters/maid/Maid.fbx");
+const pumpkinModelUrl = publicAssetUrl("assets/models/characters/jack-pumpkin/Jack.fbx");
 const modelUrls = { "sakura-street": mageModelUrl, "kai-blue": kaiAnimeBoyModelUrl, "violet-atelier": maidModelUrl, "juniper-tech": pumpkinModelUrl };
 const toonGradient = new THREE.DataTexture(new Uint8Array([105,105,105, 176,176,176, 255,255,255]), 3, 1, THREE.RGBFormat);
 toonGradient.minFilter = THREE.NearestFilter;
@@ -58,7 +61,7 @@ function loadMaidTextures() {
   if (!maidTexturePromise) {
     const names = ["Body_Tex", "Clothes_Tex", "Eyebrows_tex", "EyeHighlights_tex", "Eyelashes_Tex", "Eyes_Tex", "EyeWhite_Tex", "Face_Tex", "Hair1_Tex", "Hair2_Tex", "Mouth_tex", "Shoes_Tex"];
     maidTexturePromise = Promise.all(names.map(async name => {
-      const texture = await textureLoader.loadAsync(`/assets/models/characters/maid/Textures/${name}.png`);
+      const texture = await textureLoader.loadAsync(publicAssetUrl(`assets/models/characters/maid/Textures/${name}.png`));
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.needsUpdate = true;
       return [name.toLowerCase(), texture];
@@ -142,7 +145,6 @@ function cloneMaterials(scene, renderStyle) {
         opacity: source.opacity,
         vertexColors: renderStyle === "vertex-painted" ? hasVertexPaint : source.vertexColors,
         depthWrite: source.depthWrite,
-        roughness: source.roughness,
       });
       material.name = source.name;
       return material;
@@ -276,7 +278,7 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
       if (!object.isBone) return;
       restPose.set(object, object.quaternion.clone());
       const name = object.name.toLowerCase();
-      if (name.includes("upper_arm") || name.includes("forearm") || name.includes("upperarm") || name.includes("lowerarm") || name.includes("shoulder") || name.includes("leftarm") || name.includes("rightarm")) armBones.push(object);
+      if (!/\.\d{3}$/.test(name) && (name.includes("upper_arm") || name.includes("forearm") || name.includes("upperarm") || name.includes("lowerarm") || name.includes("shoulder") || name.includes("leftarm") || name.includes("rightarm"))) armBones.push(object);
     });
     baseModelScale.copy(model.scale);
     baseModelPosition.copy(model.position);
@@ -353,9 +355,31 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
         else if (walking && upper) offset.setFromEuler(new THREE.Euler((right ? 1 : -1) * swing * (shoulder ? 0.1 : 0.38), 0, (right ? -1 : 1) * relaxAngle));
         else if (proceduralLocomotion && upper) offset.setFromEuler(new THREE.Euler(0, 0, (right ? -1 : 1) * relaxAngle));
         else if (dance && upper) offset.setFromEuler(new THREE.Euler(0, Math.sin(proceduralTime * 5) * 0.28, (right ? -1 : 1) * (0.45 + Math.sin(proceduralTime * 5) * 0.2)));
-        else if (sit && upper) offset.setFromEuler(new THREE.Euler(0, 0, right ? -0.28 : 0.28));
+        else if (sit && upper) offset.setFromEuler(new THREE.Euler(-0.12, 0, right ? -0.88 : 0.88));
+        else if (sit && name.includes("forearm")) offset.setFromEuler(new THREE.Euler(-0.55, 0, 0));
         if (character.renderStyle === "vrm") bone.quaternion.copy(offset).multiply(base);
         else bone.quaternion.copy(base).multiply(offset);
+      }
+      if (sit) {
+        // The free character rigs don't ship a sitting clip. Bend the actual
+        // leg bones into a seated pose instead of briefly waving the arms.
+        model.traverse(object => {
+          if (!object.isBone) return;
+          const name = object.name.toLowerCase().replace(/[^a-z]/g, "");
+          const base = restPose.get(object);
+          if (!base) return;
+          let angle = null;
+          // Rigify and several FBX rigs add helper bones such as .001 under
+          // the actual joint. Rotating both bends the limb twice and twists
+          // the seated pose; drive only the main thigh and shin joints.
+          const helperBone = /\.\d{3}$/.test(object.name);
+          if (!helperBone && (name.includes("upperleg") || name.includes("upleg") || name.includes("thigh"))) angle = -1.08;
+          else if (!helperBone && (name.includes("lowerleg") || name.includes("calf") || name.includes("knee") || name.includes("shin"))) angle = 1.36;
+          if (angle === null) return;
+          const offset = new THREE.Quaternion().setFromEuler(new THREE.Euler(angle, 0, 0));
+          if (character.renderStyle === "vrm") object.quaternion.copy(offset).multiply(base);
+          else object.quaternion.copy(base).multiply(offset);
+        });
       }
       if (proceduralLocomotion) {
         model.traverse(object => {
@@ -384,6 +408,7 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
       model.scale.copy(baseModelScale);
       if (jump) model.position.y = Math.sin(Math.min(proceduralTime / 0.65, 1) * Math.PI) * 0.08;
       else if (land) model.scale.y *= 0.88 + Math.min(proceduralTime / 0.24, 1) * 0.12;
+      else if (sit) { model.position.copy(baseModelPosition); model.position.y -= 0.34; }
       else model.position.copy(baseModelPosition);
       if (dance) model.rotation.y = baseModelRotation.y + Math.sin(proceduralTime * 3.5) * 0.14;
       else model.rotation.y = baseModelRotation.y;

@@ -1,9 +1,10 @@
-import { rewardStudyAnswer, updateProfile } from "./profile.js";
+import { addLearnedWord, recordDailyFoodWord, rewardStudyAnswer, updateProfile } from "./profile.js";
 import { questions } from "./questions.js";
+import vocabulary from "./data/hsk1-vocabulary.json";
 import characterData from "./data/characters.json";
+import { mountAccount } from "./account.js";
 import { mountPlayerStats } from "./analytics/playerStats.js";
 import "./analytics/playerStats.css";
-import "./hsk.css";
 import "./hsk.css";
 
 (() => {
@@ -22,37 +23,47 @@ import "./hsk.css";
   let profilePreview = null;
   let studioPromise = null;
   let draftAppearance = null;
+  let pendingSchoolTab = null;
+
+  function mountHskCourse() {
+    if (!hskCourseReady && !hskCoursePending) {
+      hskCoursePending = true;
+      import("./hsk1.js").then(({ mountHsk1Course }) => {
+        hskCoursePending = false; hskCourseReady = true;
+        mountHsk1Course(document.querySelector("#hsk-course"));
+      }).catch(error => {
+        hskCoursePending = false;
+        const course = document.querySelector("#hsk-course");
+        if (course) course.innerHTML = `<div class="error-state"><p>We couldn’t load the HSK 1 course.</p><p>${escapeHtml(error.message)}</p><button class="retry-btn" type="button" onclick="location.reload()">Try again</button></div>`;
+      });
+    }
+  }
 
   function navigate(route) {
-    const next = views[route] ? route : "home";
+    const legacyStudy = route === "study";
+    const next = legacyStudy ? "world" : (views[route] ? route : "home");
     Object.entries(views).forEach(([name, element]) => {
       element.classList.toggle("active", name === next);
       element.setAttribute("aria-hidden", name !== next ? "true" : "false");
     });
     document.querySelectorAll(".nav-link[data-route]").forEach(link => link.classList.toggle("active", link.dataset.route === next));
     crumb.textContent = next.toUpperCase();
-    if (next === "study") {
-      document.querySelector("#picture-practice").hidden = true;
-      document.querySelector("#hsk-course").hidden = false;
-      if (!hskCourseReady && !hskCoursePending) {
-        hskCoursePending = true;
-        import("./hsk1.js").then(({ mountHsk1Course }) => {
-          hskCoursePending = false;
-          hskCourseReady = true;
-          mountHsk1Course(document.querySelector("#hsk-course"));
-        }).catch(error => {
-          hskCoursePending = false;
-          document.querySelector("#hsk-course").innerHTML = `<div class="error-state"><p>We couldn’t load the HSK 1 course.</p><p>${escapeHtml(error.message)}</p><button class="retry-btn" type="button" onclick="location.reload()">Try again</button></div>`;
-        });
-      }
-    }
+    if (world) world.setVisible(next === "world");
+    if (legacyStudy) pendingSchoolTab = "hsk";
     if (studioPreview) studioPreview.setVisible(next === "character");
     if (next === "character") initializeCharacterStudio();
     if (next === "world" && !world && !worldPending) {
       worldPending = true;
       import("./world.js").then(({ createWorld }) => {
         worldPending = false;
-        if (views.world.classList.contains("active") && !world) world = createWorld(document.querySelector("#world-canvas"));
+        if (views.world.classList.contains("active") && !world) {
+          world = createWorld(document.querySelector("#world-canvas"));
+          world.setVisible(true);
+          import("./school.js").then(({ mountSchool }) => {
+            mountSchool(document.querySelector("#school-overlay"));
+            if (pendingSchoolTab) { const tab = pendingSchoolTab; pendingSchoolTab = null; window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab } })); }
+          }).catch(error => console.error("Campus activities could not start", error));
+        }
       }).catch(error => {
         worldPending = false;
         const interaction = document.querySelector("#world-interaction");
@@ -60,6 +71,8 @@ import "./hsk.css";
         interaction.innerHTML = `<button class="interaction-close" aria-label="Close">×</button><h2>World could not start</h2><p>${escapeHtml(error.message)}</p><p>Try a browser with WebGL enabled.</p>`;
         interaction.querySelector(".interaction-close").addEventListener("click", () => { interaction.hidden = true; });
       });
+    } else if (next === "world" && legacyStudy) {
+      if (document.querySelector("#school-overlay")?.dataset.mounted) window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: "hsk" } }));
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -128,6 +141,12 @@ import "./hsk.css";
       ? `<span class="feedback-icon">✓</span><span>That’s right! <b lang="zh">${escapeHtml(lesson.dataset.answer)}</b> means ${escapeHtml(safeQuestions()[questionIndex % safeQuestions().length].meaning || "a new word")}. One lovely new word learned.</span>`
       : `<span class="feedback-icon">↗</span><span>Almost! <b lang="zh">${escapeHtml(lesson.dataset.answer)}</b> means ${escapeHtml(safeQuestions()[questionIndex % safeQuestions().length].meaning || "the right answer")}. Keep going—you’re learning.</span>`;
     rewardStudyAnswer(correct);
+    if (correct) {
+      const answer = safeQuestions()[questionIndex % safeQuestions().length].answer;
+      const entry = vocabulary.words.find(word => word.hanzi === answer);
+      if (entry) addLearnedWord(entry);
+      recordDailyFoodWord(answer);
+    }
     lesson.querySelector('[data-action="next"]').disabled = false;
   });
 
@@ -142,14 +161,36 @@ import "./hsk.css";
   });
 
   document.addEventListener("click", event => {
+    const schoolLink = event.target.closest("[data-open-school]");
+    if (schoolLink) {
+      event.preventDefault();
+      const tab = schoolLink.dataset.openSchool || "hub";
+      history.replaceState(null, "", "#world");
+      if (views.world.classList.contains("active") && document.querySelector("#school-overlay")?.dataset.mounted) window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab } }));
+      else pendingSchoolTab = tab;
+      navigate("world");
+      return;
+    }
     const link = event.target.closest("[data-route]");
     if (!link || link.getAttribute("aria-disabled") === "true") return;
     event.preventDefault();
     const route = link.dataset.route;
-    if (!views[route]) return;
+    if (!views[route] && route !== "study") return;
     history.replaceState(null, "", `#${route}`);
     navigate(route);
   });
+
+  window.addEventListener("lantern:school-course", () => {
+    const host = document.querySelector("#school-course-host");
+    if (!host) return;
+    const course = document.querySelector("#hsk-course");
+    const practice = document.querySelector("#picture-practice");
+    if (course) host.append(course);
+    if (practice) host.append(practice);
+    mountHskCourse();
+    window.dispatchEvent(new CustomEvent("lantern:school-course-ready"));
+  });
+  document.querySelector("#back-to-hsk").addEventListener("click", () => window.dispatchEvent(new CustomEvent("lantern:school-course")));
 
   window.addEventListener("hashchange", () => navigate(location.hash.slice(1)));
 
@@ -160,6 +201,7 @@ import "./hsk.css";
     onlineElement: document.querySelector("#online-player-count"),
     statusElement: document.querySelector("#player-count-status"),
   });
+  mountAccount();
   document.querySelectorAll("[data-customize-open]").forEach(button => button.addEventListener("click", () => { history.replaceState(null, "", "#character"); navigate("character"); }));
   document.querySelectorAll("[data-customize-close]").forEach(button => button.addEventListener("click", () => { customize.hidden = true; }));
   document.querySelectorAll("[data-profile-open]").forEach(button => button.addEventListener("click", () => { profileModal.hidden = false; openProfilePreview(); }));
