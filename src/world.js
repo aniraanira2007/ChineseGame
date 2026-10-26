@@ -1000,11 +1000,7 @@ export function createWorld(canvas) {
     if (!running || !visible) return;
     const dt = Math.min((time - previousTime) / 1000 || 0, 0.04); previousTime = time;
     const forward = THREE.MathUtils.clamp(Number(keys.has("KeyW") || keys.has("ArrowUp") || heldTouch.has("KeyW")) - Number(keys.has("KeyS") || keys.has("ArrowDown") || heldTouch.has("KeyS")) + joystickVector.y, -1, 1);
-    // The phone stick is laid out from the player's view, while the world
-    // camera's horizontal axis is mirrored on touch displays. Invert its X
-    // value so dragging the knob left moves the avatar left on screen. Keep
-    // keyboard A/D mapped to their standard directions.
-    const side = THREE.MathUtils.clamp(Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA")) - joystickVector.x, -1, 1);
+    const side = THREE.MathUtils.clamp(Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA")) + joystickVector.x, -1, 1);
     const runningFast = keys.has("ShiftLeft") || keys.has("ShiftRight") || heldTouch.has("ShiftLeft");
     if (keys.has("Space") && grounded) { velocityY = 7; grounded = false; }
     const speed = runningFast ? 8.6 : 4.7;
