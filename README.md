@@ -38,6 +38,21 @@ To enable accounts and cloud saves:
 
 The database uses Row Level Security. Signed-in users can view public student cards; each user can read or edit only their own private save. The directory lists student cards, not verified online presence. Real-time multiplayer, friend requests, and chat are separate work and are not enabled by accounts alone.
 
+## Worldmates Club and outfit shop
+
+The Club page previews an optional US$5/month membership while the base game remains free. It includes a free Chinese coffee-order mini-lesson and a preview of planned outfits. The page does not charge players, and cosmetic concepts are clearly marked as not purchasable until the actual character assets are built and tested.
+
+To activate Stripe payments later, first create the Club monthly recurring Price in Stripe test mode and keep the price ID private to the server setup. Then:
+
+1. Run `supabase/worldmates-store.sql` in the Supabase SQL Editor.
+2. Install or run the Supabase CLI, sign in with `npx supabase login`, and connect this folder with `npx supabase link --project-ref YOUR_PROJECT_REF`.
+3. Add these secrets to Supabase Edge Function secrets (never GitHub browser variables): `STRIPE_SECRET_KEY`, `STRIPE_PRICE_CLUB_MONTHLY`, and `STRIPE_WEBHOOK_SECRET`. Supabase supplies the project URL and server keys to hosted functions. Optionally add `APP_BASE_URL=https://aniraanira2007.github.io/ChineseGame/`.
+4. Deploy the two server functions with `npx supabase functions deploy create-checkout` and `npx supabase functions deploy stripe-webhook`.
+5. In Stripe test mode, create a webhook endpoint at `https://YOUR_PROJECT_REF.supabase.co/functions/v1/stripe-webhook` for `checkout.session.completed`, `customer.subscription.updated`, and `customer.subscription.deleted`. Save its signing secret as `STRIPE_WEBHOOK_SECRET` in Supabase.
+6. Test checkout and cancellation using Stripe test cards. Only after those tests pass, add a GitHub Actions **Variable** named `VITE_PAYMENTS_ENABLED` with value `true` and redeploy. Keep using test keys until the live payment setup, refunds, customer support, and local requirements are ready.
+
+The browser only calls the authenticated `create-checkout` function. Stripe secret and webhook keys stay on the server; the webhook verifies payment events before the database grants membership. Outfit concepts are not checkout products yet because the actual models, equip flow, and entitlement checks still need to be completed.
+
 ## iPhone App Store build
 
 The web game is prepared to be packaged as a native iOS app with Capacitor. The App Store version uses the built game files locally inside the app, while the public website remains available separately. The configured display name is **Worldmates**. Its existing bundle identifier remains `com.aniraanira2007.littlelantern` to preserve the current app identity.
@@ -57,6 +72,10 @@ This Windows workspace cannot sign, run, archive, or submit an iOS app because t
 - `styles.css` and `world.css` — shared site styling and responsive world UI.
 - `src/app.js` — Home/Study/World navigation, question feedback, shared profile UI, and rewards.
 - `src/account.js` / `src/account.css` — optional Supabase email accounts, student card editing, directory, and cloud save syncing.
+- `src/store.js` / `club.css` — Worldmates Club preview, free sample lesson, and outfit concept catalog. Checkout remains disabled until payment setup is complete.
+- `src/supabaseClient.js` — one shared Supabase session for accounts and the store.
+- `supabase/worldmates-store.sql` — private subscription and cosmetic entitlement tables with owner-only read policies.
+- `supabase/functions/create-checkout/` and `supabase/functions/stripe-webhook/` — secure server-side Stripe Checkout and webhook verification.
 - `supabase/worldmates-profiles.sql` — public student cards plus owner-only private game saves with Row Level Security.
 - `src/questions.js` — the Stage 1 picture questions.
 - `src/profile.js` — local saved player name, avatar color, XP, coins, lesson count, level, and achievements.

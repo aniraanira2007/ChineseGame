@@ -10,7 +10,7 @@ import "./hsk.css";
 (() => {
   "use strict";
 
-  const views = { home: document.querySelector("#home-view"), study: document.querySelector("#study-view"), world: document.querySelector("#world-view"), character: document.querySelector("#character-view") };
+  const views = { home: document.querySelector("#home-view"), study: document.querySelector("#study-view"), world: document.querySelector("#world-view"), character: document.querySelector("#character-view"), club: document.querySelector("#club-view") };
   const crumb = document.querySelector("#crumb-current");
   const lesson = document.querySelector("#lesson-container");
   let questionIndex = 0;
@@ -24,6 +24,8 @@ import "./hsk.css";
   let studioPromise = null;
   let draftAppearance = null;
   let pendingSchoolTab = null;
+  let clubPending = false;
+  let clubReady = false;
 
   function mountHskCourse() {
     if (!hskCourseReady && !hskCoursePending) {
@@ -52,6 +54,18 @@ import "./hsk.css";
     if (legacyStudy) pendingSchoolTab = "hsk";
     if (studioPreview) studioPreview.setVisible(next === "character");
     if (next === "character") initializeCharacterStudio();
+    if (next === "club" && !clubReady && !clubPending) {
+      clubPending = true;
+      import("./store.js").then(({ mountClubStore }) => {
+        clubPending = false;
+        clubReady = true;
+        mountClubStore(document.querySelector("#club-store-root"));
+      }).catch(error => {
+        clubPending = false;
+        const root = document.querySelector("#club-store-root");
+        if (root) root.innerHTML = `<div class="store-message is-error" role="alert">The Club page couldn’t load. ${escapeHtml(error.message)}</div>`;
+      });
+    }
     if (next === "world" && !world && !worldPending) {
       worldPending = true;
       import("./world.js").then(({ createWorld }) => {

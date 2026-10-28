@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { getProfile, replaceProfile, resetProfile, updateProfile } from "./profile.js";
+import { supabaseClient } from "./supabaseClient.js";
 import "./account.css";
 
 const projectUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -37,7 +37,7 @@ export function mountAccount() {
   let activeUserId = null;
   let suppressSync = false;
   let syncTimer = 0;
-  let client = null;
+  let client = supabaseClient;
   let directoryRows = [];
   const readOwner = () => { try { return localStorage.getItem(OWNER_KEY); } catch { return null; } };
   const writeOwner = userId => { try { localStorage.setItem(OWNER_KEY, userId); } catch { /* Account sessions can still work if browser storage is restricted. */ } };
@@ -248,7 +248,6 @@ export function mountAccount() {
     return;
   }
 
-  client = createClient(projectUrl, publicKey);
   client.auth.onAuthStateChange((event, session) => {
     if (session?.user) { connectUser(session.user).catch(error => { console.warn("Worldmates profile could not load.", error); say(accountStatus, "Signed in, but your saved profile could not load. Check the database setup.", "error"); }); }
     else if (event === "SIGNED_OUT") { activeUserId = null; setSessionUi(null); }
