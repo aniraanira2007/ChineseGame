@@ -128,7 +128,7 @@ export function createWorld(canvas) {
     const pearl = new THREE.Mesh(sphereGeo, mat(y === 4 ? "#c77b72" : "#d9a56c", 0.48)); pearl.position.set(24, y, -64); pearl.scale.setScalar(radius); scene.add(pearl);
   }
   const exteriorEntrances = [];
-  const roomIdByBuilding = { "Lantern Chinese School": "classroom", "Tea House": "teahouse", Bookshop: "library", "Student House": "home", "Shanghai Noodle House": "food", "Dumpling & Tea": "dumpling", "Shanghai Coffee": "cafe", "World Culture Museum": "museum", "Art & Music Studio": "studio", "Riverside Garden": "garden" };
+  const roomIdByBuilding = { "Lantern Chinese School": "classroom", "Tea House": "teahouse", Bookshop: "library", "Student House": "home", "Shanghai Noodle House": "food", "Dumpling & Tea": "dumpling", "Shanghai Coffee": "cafe", "World Culture Museum": "museum", "Art & Music Studio": "studio", "Riverside Garden": "garden", "Culture Memory House": "culture-house", "Worldmates Gym": "gym", "Shanghai Family Restaurant": "restaurant", "Chinese Math House": "math-house", "Shanghai Coffee Lab": "coffee-house" };
   const buildingFootprints = [];
   function building(x, z, width, depth, height, wall, roof, label, sign = "学") {
     buildingFootprints.push({ x, z, halfX: width / 2 + 0.8, halfZ: depth / 2 + 0.8, roomId: roomIdByBuilding[label] || null });
@@ -278,6 +278,27 @@ export function createWorld(canvas) {
   building(-34, -15, 12, 10, 5.6, materials.wallBlue, materials.roofDark, "World Culture Museum", "文");
   building(17, 33, 12, 10, 5.6, materials.wallPink, materials.roofRed, "Art & Music Studio", "艺");
   building(-34, 33, 12, 10, 5.4, materials.wallMint, materials.roofOrange, "Riverside Garden", "园");
+  // A new activity lane sits beyond the south gardens. Its five separate
+  // road-facing doors lead to the culture, gym, restaurant, math, and café rooms.
+  const activityLane = [
+    { x: 48, z: -36, label: "Culture Memory House", sign: "果", wall: materials.wallBlue, roof: materials.roofDark },
+    { x: 48, z: -18, label: "Worldmates Gym", sign: "动", wall: materials.wallMint, roof: materials.roofOrange },
+    { x: 48, z: 0, label: "Shanghai Family Restaurant", sign: "饭", wall: materials.wallPink, roof: materials.roofRed },
+    { x: 48, z: 18, label: "Chinese Math House", sign: "数", wall: materials.wallCream, roof: materials.roofDark },
+    { x: 48, z: 36, label: "Shanghai Coffee Lab", sign: "咖", wall: materials.wallBlue, roof: materials.roofOrange },
+  ];
+  activityLane.forEach(item => building(item.x, item.z, 11, 10, 5.7, item.wall, item.roof, item.label, item.sign));
+  const activitySigns = ["CULTURE MEMORY HOUSE · 文化", "WORLDMATES GYM · 健身", "FAMILY RESTAURANT · 餐厅", "CHINESE MATH · 数学", "COFFEE LAB · 咖啡"];
+  activityLane.forEach((item, index) => {
+    const frontSign = item.z <= 0 ? 1 : -1, facadeZ = item.z + frontSign * 5.0;
+    const signCanvas = document.createElement("canvas"); signCanvas.width = 1024; signCanvas.height = 192;
+    const ctx = signCanvas.getContext("2d"); ctx.fillStyle = "#fff8e8"; ctx.fillRect(0, 0, 1024, 192); ctx.strokeStyle = "#c49a61"; ctx.lineWidth = 12; ctx.strokeRect(8, 8, 1008, 176);
+    ctx.fillStyle = "#4b604b"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = 'bold 42px "Nunito", sans-serif'; ctx.fillText(activitySigns[index], 512, 99);
+    const texture = new THREE.CanvasTexture(signCanvas); texture.colorSpace = THREE.SRGBColorSpace;
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(5.9, 1.1), new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })); sign.position.set(item.x, 4.05, facadeZ + frontSign * 0.25); sign.rotation.y = frontSign < 0 ? Math.PI : 0; scene.add(sign);
+  });
+  block(37, 0.045, 0, 3.2, 0.07, 72, materials.stone, false);
+  for (const z of [-36, -18, 0, 18, 36]) block(43, 0.05, z + (z < 0 ? 2.8 : -2.8), 12, 0.08, 2.2, materials.stone, false);
   block(32, 0.045, 9.6, 3.4, 0.07, 19.2, materials.stone, false);
   block(-34, 0.045, -7.5, 3.2, 0.07, 13.8, materials.stone, false);
   block(17, 0.045, 22.2, 3.2, 0.07, 21.4, materials.stone, false);
@@ -391,7 +412,7 @@ export function createWorld(canvas) {
   const initialProfile = getProfile();
   let avatar = createCharacter({ characterId: initialProfile.appearance.characterId, outfitId: initialProfile.appearance.outfitId, appearance: initialProfile.appearance, playerIdentity: initialProfile.name, onStatus: updateAvatarStatus });
   let player = avatar.root;
-  function setAvatarRoomLayers(root) { root.traverse(object => { for (let layer = 1; layer <= 10; layer++) object.layers.enable(layer); }); }
+  function setAvatarRoomLayers(root) { root.traverse(object => { for (let layer = 1; layer <= 15; layer++) object.layers.enable(layer); }); }
   setAvatarRoomLayers(player);
   player.scale.setScalar(0.92 * player.userData.renderScale);
   scene.add(player);
@@ -399,6 +420,11 @@ export function createWorld(canvas) {
   player.position.set(0, 0, 8);
 
   const landmarks = [
+    { id: "culture-house", name: "Culture Memory House", x: 48, z: -28.2, icon: "果", detail: "Guess fruits and everyday objects from picture clues. Hear each Chinese word, then see its pinyin and meaning.", action: "Enter Culture Memory House", route: "room", roomId: "culture-house", color: "#739ac2" },
+    { id: "gym", name: "Worldmates Gym", x: 48, z: -10.2, icon: "🏋️", detail: "Try eight beginner-friendly machines. Read a form tip, then watch your avatar demonstrate the movement.", action: "Enter the gym", route: "room", roomId: "gym", color: "#67a887" },
+    { id: "restaurant", name: "Shanghai Family Restaurant", x: 48, z: 7.8, icon: "饭", detail: "Sit at a table, browse breakfast, lunch, or dinner, learn the pronunciation, and place an order with the waitress.", action: "Enter the restaurant", route: "room", roomId: "restaurant", color: "#d27e73" },
+    { id: "math-house", name: "Chinese Math House", x: 48, z: 10.2, icon: "数", detail: "Meet Teacher Wang and solve friendly beginner number and addition questions in Chinese.", action: "Enter Math House", route: "room", roomId: "math-house", color: "#d1a34f" },
+    { id: "coffee-house", name: "Shanghai Coffee Lab", x: 48, z: 28.2, icon: "咖", detail: "Take a café seat, explore Chinese coffee and tea orders, and practise pinyin with the barista.", action: "Enter Coffee Lab", route: "room", roomId: "coffee-house", color: "#8a9b72" },
     { id: "classroom", name: "Lantern Chinese School", x: -17, z: -5.2, icon: "学", detail: "The large red-roof school is straight ahead on the left. Enter through the wide front doors to study at the desks.", action: "Enter the school", route: "room", roomId: "classroom", color: "#e3ad63" },
     { id: "teahouse", name: "School Tea House", x: 17, z: -8.3, icon: "茶", detail: "A small tea room on the right side of the north road. Practise a Chinese conversation with Mei.", action: "Enter the tea house", route: "room", roomId: "teahouse", color: "#79a987" },
     { id: "bookshop", name: "Campus Library", x: -18, z: 10.4, icon: "书", detail: "The green-roof library faces the south edge of the main road. Browse your collected words inside.", action: "Enter the library", route: "room", roomId: "library", color: "#7a9abe" },
@@ -478,7 +504,7 @@ export function createWorld(canvas) {
   const worldMapPanel = document.querySelector("#world-map-panel");
   const worldMapList = document.querySelector("[data-world-map-list]");
   const worldMapStatus = document.querySelector("[data-world-map-status]");
-  const mapPlaceOrder = ["classroom", "bookshop", "teahouse", "pavilion", "noodle-house", "dumpling-tea", "coffee", "street-pho", "street-yatai", "street-xiaolongbao", "museum", "art-studio", "riverside-garden", "garden", "student-house"];
+  const mapPlaceOrder = ["classroom", "bookshop", "teahouse", "pavilion", "noodle-house", "dumpling-tea", "coffee", "street-pho", "street-yatai", "street-xiaolongbao", "museum", "art-studio", "riverside-garden", "garden", "student-house", "culture-house", "gym", "restaurant", "math-house", "coffee-house"];
   const mapPlaces = landmarks.filter(place => !place.huntId).sort((a, b) => mapPlaceOrder.indexOf(a.id) - mapPlaceOrder.indexOf(b.id));
   if (worldMapList) worldMapList.innerHTML = mapPlaces.map(place => `<button class="world-map-place" type="button" data-map-place="${escapeHtml(place.id)}"><span>${escapeHtml(place.icon)}</span><b>${escapeHtml(place.name)}</b><small>Walk there →</small></button>`).join("");
   // Five low-poly props make the Word Hunt targets visible in the playable plaza.
@@ -522,6 +548,14 @@ export function createWorld(canvas) {
   }
 
   const roomConfigs = [
+    { id: "culture-house", name: "Culture Memory House", x: 255, z: 65, layer: 11, wall: "#e1eaf1", trim: "#557d9f", floor: "#c6b89f", width: 18, depth: 18, height: 5.4, outside: [48, -28.2], doorWidth: 3.2, stations: [{ id: "culture-picture-game", label: "Fruit & Home Picture Game", x: 0, z: -1, icon: "🍎", tab: "culturegame" }] },
+    { id: "gym", name: "Worldmates Gym", x: 274, z: 65, layer: 12, wall: "#dfebe2", trim: "#51866e", floor: "#c5b497", width: 18, depth: 18, height: 5.4, outside: [48, -10.2], doorWidth: 3.2, stations: [
+      { id: "gym-treadmill", label: "Treadmill · walk", x: -5.6, z: 3.8, icon: "🏃", tab: "gym", machineId: "treadmill" }, { id: "gym-bike", label: "Exercise bike", x: -1.8, z: 3.8, icon: "🚲", tab: "gym", machineId: "bike" }, { id: "gym-elliptical", label: "Elliptical", x: 1.8, z: 3.8, icon: "🚶", tab: "gym", machineId: "elliptical" }, { id: "gym-rower", label: "Rowing machine", x: 5.6, z: 3.8, icon: "🚣", tab: "gym", machineId: "rower" },
+      { id: "gym-chest", label: "Chest press", x: -5.6, z: -1.2, icon: "💪", tab: "gym", machineId: "chest-press" }, { id: "gym-leg", label: "Leg press", x: -1.8, z: -1.2, icon: "🦵", tab: "gym", machineId: "leg-press" }, { id: "gym-cable", label: "Cable station", x: 1.8, z: -1.2, icon: "🏋️", tab: "gym", machineId: "cable" }, { id: "gym-stretch", label: "Stretch mat", x: 5.6, z: -1.2, icon: "🧘", tab: "gym", machineId: "stretch" }
+    ] },
+    { id: "restaurant", name: "Shanghai Family Restaurant", x: 293, z: 65, layer: 13, wall: "#f1dfcf", trim: "#a94f38", floor: "#c99b68", width: 18, depth: 18, height: 5.4, outside: [48, 7.8], doorWidth: 3.2, stations: [{ id: "restaurant-menu", label: "Sit & Order · Breakfast Lunch Dinner", x: 0, z: -1.4, icon: "🍜", tab: "restaurant" }] },
+    { id: "math-house", name: "Chinese Math House", x: 312, z: 65, layer: 14, wall: "#f0e8cf", trim: "#967444", floor: "#c8b28d", width: 18, depth: 18, height: 5.4, outside: [48, 10.2], doorWidth: 3.2, stations: [{ id: "math-lesson", label: "Teacher Wang · Chinese Math", x: 0, z: -2.5, icon: "数", tab: "math" }] },
+    { id: "coffee-house", name: "Shanghai Coffee Lab", x: 331, z: 65, layer: 15, wall: "#e5eadb", trim: "#75805d", floor: "#c9b493", width: 18, depth: 18, height: 5.4, outside: [48, 28.2], doorWidth: 3.2, stations: [{ id: "coffee-house-menu", label: "Sit & Order · Coffee and Tea", x: 0, z: -1.4, icon: "☕", tab: "coffeehouse" }] },
     { id: "classroom", name: "Worldmates School", x: 65, z: 65, layer: 1, wall: "#ead8b7", trim: "#a95f4d", floor: "#cba77a", width: 22, depth: 22, height: 6.5, outside: [-17, -5.2], doorWidth: 3.6, stations: [{ id: "class-desk", label: "Chinese Classroom · Teacher Lin", x: 0, z: 0, icon: "学", tab: "classroom" }, { id: "class-food-quest", label: "Daily food quest board", x: -3.2, z: 4, icon: "🥟", tab: "foodquest" }, { id: "class-board", label: "HSK 1 board", x: 3.2, z: 4, icon: "书", tab: "hsk" }] },
     { id: "library", name: "Campus Library", x: 84, z: 65, layer: 2, wall: "#dae7df", trim: "#527b68", floor: "#c9b493", outside: [-18, 10.4], doorWidth: 3.2, stations: [{ id: "library-table", label: "Reading table", x: 0, z: 0, icon: "书", tab: "words" }, { id: "library-shelf", label: "HSK study shelf", x: -3.8, z: 3.2, icon: "学", tab: "hsk" }] },
     { id: "home", name: "Student House", x: 103, z: 65, layer: 3, wall: "#f0dfd3", trim: "#b96f62", floor: "#bd966c", outside: [-34, 10.4], doorWidth: 3.2, stations: [{ id: "homework-desk", label: "Homework desk", x: 0, z: 0, icon: "文", tab: "lesson" }, { id: "home-books", label: "Family bookcase", x: 3.5, z: 3.4, icon: "书", tab: "words" }] },
@@ -534,6 +568,7 @@ export function createWorld(canvas) {
     { id: "garden", name: "Riverside Garden Pavilion", x: 236, z: 65, layer: 10, wall: "#dcebdc", trim: "#5c8763", floor: "#c2a984", width: 16, depth: 18, height: 5.4, outside: [-34, 24.7], doorWidth: 3.2, stations: [{ id: "garden-words", label: "Garden word book", x: -3.5, z: 1.5, icon: "书", tab: "words" }, { id: "garden-circle", label: "Quiet practice circle", x: 3.5, z: 1.5, icon: "园", tab: "circle" }] },
   ];
   const roomMarkers = [];
+  const serviceAgents = [];
   const rooms = new Map();
   function roomBox(group, x, y, z, sx, sy, sz, material) {
     const mesh = new THREE.Mesh(boxGeo, material); mesh.position.set(x, y, z); mesh.scale.set(sx, sy, sz); mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
@@ -654,6 +689,60 @@ export function createWorld(canvas) {
       roomBox(group, 0, 0.95, -3.1, 4.2, 0.3, 1.4, wood);
       for (let i = 0; i < 8; i++) roomBox(group, -1.65 + i * 0.47, 1.15, -3.1, 0.32, 0.08, 0.9, i % 2 ? materials.white : materials.roofDark);
       for (const x of [-2.8, 2.8]) { roomBox(group, x, 0.52, -1.2, 0.8, 0.14, 0.8, trim); sitSpots.push({ x, z: -1.2, yaw: Math.PI }); }
+    } else if (config.id === "culture-house") {
+      const frame = mat("#715c45"), pictureColors = ["#e88070", "#f0bc61", "#79aa7a", "#7aa5c4", "#bd8bb4", "#df9b60"];
+      for (let i = 0; i < 6; i++) {
+        const x = (i % 3 - 1) * 4.7, z = i < 3 ? 5.2 : 1.7;
+        roomBox(group, x, 2.45, z, 3.25, 2.45, 0.18, frame);
+        roomBox(group, x, 2.45, z - 0.14, 2.95, 2.15, 0.08, mat(pictureColors[i]));
+        addRoomLabel(group, ["苹果 APPLE", "香蕉 BANANA", "橙子 ORANGE", "桌子 TABLE", "椅子 CHAIR", "房子 HOUSE"][i], x, 2.48, z - 0.22, "#fff7e8", 2.8, 0.55);
+      }
+      roomBox(group, 0, 0.83, -3.1, 5.1, 0.18, 1.5, wood);
+      for (const x of [-1.8, 0, 1.8]) { const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.38, 10, 8), mat(["#d94d43", "#edc44c", "#e88845"][Math.abs(Math.round(x / 1.8))])); fruit.position.set(x, 1.32, -3.1); group.add(fruit); }
+    } else if (config.id === "gym") {
+      const steel = mat("#687d82", 0.42), pad = mat("#4f8176"), machineNames = ["Treadmill", "Exercise bike", "Elliptical", "Rowing machine", "Chest press", "Leg press", "Cable machine", "Stretch mat"];
+      for (let i = 0; i < machineNames.length; i++) {
+        const x = i % 4 < 2 ? -5.6 + (i % 2) * 3.8 : 1.8 + (i % 2) * 3.8, z = i < 4 ? 3.8 : -1.2;
+        roomBox(group, x, 0.18, z, 1.6, 0.22, 1.3, pad);
+        if (i === 0 || i === 2) { roomBox(group, x, 1.0, z, 1.2, 0.12, 2.6, steel); roomBox(group, x - 0.52, 1.25, z, 0.1, 1.5, 0.12, steel); roomBox(group, x + 0.52, 1.25, z, 0.1, 1.5, 0.12, steel); }
+        else if (i === 7) roomBox(group, x, 0.16, z, 1.8, 0.12, 2.2, mat("#7a9bd0"));
+        else { roomBox(group, x - 0.58, 1.2, z, 0.12, 2.1, 0.12, steel); roomBox(group, x + 0.58, 1.2, z, 0.12, 2.1, 0.12, steel); roomBox(group, x, 1.15, z, 1.1, 0.3, 0.7, pad); roomBox(group, x, 2.15, z, 1.5, 0.12, 0.12, steel); }
+        addRoomLabel(group, machineNames[i], x, 2.6, z - 0.65, "#41564c", 2.6, 0.5);
+      }
+    } else if (config.id === "restaurant" || config.id === "coffee-house") {
+      const isCoffee = config.id === "coffee-house";
+      roomBox(group, 0, 2.55, 7.45, 7.2, 1.65, 0.2, board);
+      addRoomLabel(group, isCoffee ? "上海咖啡 · COFFEE & TEA" : "上海家常菜 · BREAKFAST LUNCH DINNER", 0, 3.02, 7.32, "#fff5d8", isCoffee ? 6.8 : 7.2, 0.7);
+      const tables = [[-4.5, 1.2], [0, 1.2], [4.5, 1.2], [-2.2, -3], [2.2, -3]];
+      for (const [x, z] of tables) {
+        roomBox(group, x, 0.92, z, 2.5, 0.18, 1.7, wood);
+        for (const dx of [-0.88, 0.88]) for (const dz of [-0.48, 0.48]) roomBox(group, x + dx, 0.47, z + dz, 0.12, 0.85, 0.12, trim);
+        const seatX = x, seatZ = z - 1.65;
+        roomBox(group, seatX, 0.48, seatZ, 0.82, 0.14, 0.78, trim); roomBox(group, seatX, 0.9, seatZ - 0.34, 0.82, 0.82, 0.13, wood);
+        sitSpots.push({ x: seatX, z: seatZ, yaw: 0 });
+        const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.38, 0.07, 14), mat("#fff7e9")); plate.position.set(x, 1.06, z); plate.layers.set(config.layer); group.add(plate);
+      }
+      // A small, original low-poly staff character walks from the serving side
+      // to a table when the player places an order.
+      const staff = new THREE.Group(); staff.position.set(6.1, 0, 3.8); group.add(staff);
+      const staffBody = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.72, 4, 8), mat(isCoffee ? "#66806b" : "#bd6655")); staffBody.position.y = 1.25; staff.add(staffBody);
+      const staffHead = new THREE.Mesh(new THREE.SphereGeometry(0.29, 12, 10), mat("#f0c9a7")); staffHead.position.y = 2.04; staff.add(staffHead);
+      const apron = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.48, 0.1), mat("#fff1d8")); apron.position.set(0, 1.22, 0.3); staff.add(apron);
+      const tray = new THREE.Group(); tray.position.set(0.55, 1.82, 0.15); tray.visible = false; staff.add(tray);
+      const trayPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.46, 0.08, 12), mat("#fff5de")); tray.add(trayPlate);
+      const servedDish = new THREE.Mesh(new THREE.SphereGeometry(0.25, 10, 8), mat(isCoffee ? "#9b6847" : "#e9b678")); servedDish.position.y = 0.21; tray.add(servedDish);
+      serviceAgents.push({ roomId: config.id, group: staff, tray, moving: false, progress: 0, from: new THREE.Vector3(6.1, 0, 3.8), to: new THREE.Vector3(2.4, 0, -0.6) });
+    } else if (config.id === "math-house") {
+      roomBox(group, 0, 2.55, 7.4, 9.5, 1.95, 0.2, wood);
+      roomBox(group, 0, 2.55, 7.22, 9.0, 1.55, 0.08, board);
+      addRoomLabel(group, "中文数学 · 1 + 1 = ?", 0, 2.7, 7.1, "#fff4dd", 8.3, 0.76);
+      for (const x of [-4.4, 0, 4.4]) {
+        roomBox(group, x, 0.9, 0.5, 2.0, 0.18, 1.3, wood);
+        roomBox(group, x, 0.48, 1.3, 0.78, 0.14, 0.72, trim); roomBox(group, x, 0.82, 1.0, 0.78, 0.75, 0.13, wood);
+      }
+      const teacher = new THREE.Mesh(new THREE.CapsuleGeometry(0.38, 0.8, 4, 8), mat("#577b69")); teacher.position.set(0, 1.12, 5.55); group.add(teacher);
+      const teacherHead = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), mat("#e9c5a5")); teacherHead.position.set(0, 2.0, 5.55); group.add(teacherHead);
+      addRoomLabel(group, "TEACHER WANG · 王老师", 0, 2.9, 5.7, "#fff4dd", 3.7, 0.5);
     } else if (config.id === "garden") {
       // A calm conservatory with planters and a central shared reading table.
       for (const x of [-5.5, 5.5]) {
@@ -704,7 +793,7 @@ export function createWorld(canvas) {
       const orb = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), new THREE.MeshStandardMaterial({ color: "#f0c86d", emissive: "#d6a54d", emissiveIntensity: 0.5 })); orb.position.set(x, 1.65, z); orb.layers.set(config.layer); scene.add(orb);
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.05, 6, 18), new THREE.MeshBasicMaterial({ color: "#e0b35c" })); ring.position.set(x, 0.12, z); ring.rotation.x = -Math.PI / 2; ring.layers.set(config.layer); scene.add(ring);
       addRoomLabel(group, `${station.icon} ${station.label}`, station.x, 2.5, station.z - 0.3, "#455c49");
-      const place = { id: station.id, name: station.label, x, z, icon: station.icon, detail: `Use the ${station.label.toLowerCase()} to continue learning inside the ${config.name.toLowerCase()}.`, action: "Start activity", route: "school", schoolTab: station.tab };
+      const place = { id: station.id, name: station.label, x, z, icon: station.icon, machineId: station.machineId, detail: `Use the ${station.label.toLowerCase()} to continue learning inside the ${config.name.toLowerCase()}.`, action: "Start activity", route: "school", schoolTab: station.tab };
       const marker = { orb, ring, place, room };
       room.markers.push(marker); roomMarkers.push(marker);
     }
@@ -794,7 +883,7 @@ export function createWorld(canvas) {
       if (isLocked) return;
       const firstVisit = rewardWorldVisit(place.id);
       if (place.route === "room") { enterRoom(place.roomId); return; }
-      if (place.route === "school") { hidePlace(); window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: place.schoolTab, cultureSpot: place.cultureSpot, huntSpot: place.huntId } })); return; }
+      if (place.route === "school") { hidePlace(); window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: place.schoolTab, cultureSpot: place.cultureSpot, huntSpot: place.huntId, machineId: place.machineId } })); return; }
       dialog.querySelector(".interaction-action").textContent = firstVisit ? "Discovery saved · +5 XP · +1 coin ✧" : "You’ve explored this spot ✧";
       dialog.querySelector(".interaction-action").disabled = true;
     });
@@ -808,7 +897,7 @@ export function createWorld(canvas) {
       const d = (player.position.x - place.x) ** 2 + (player.position.z - place.z) ** 2;
       if (d < best) { closest = place; best = d; }
     }
-    if (closest && best < 18) showPlace(closest);
+    if (closest && best < (insideRoom ? 45 : 18)) showPlace(closest);
   }
 
   // A guided walking route helps new players find the school on a small phone screen.
@@ -862,7 +951,7 @@ export function createWorld(canvas) {
   window.addEventListener("world:find-culture", onFindCultureStreet);
 
   function findMapPath(place) {
-    const min = -42, step = 1.4, side = 61, total = side * side;
+  const min = -56, step = 1.4, side = 81, total = side * side;
     const coordinate = index => min + index * step;
     const point = index => ({ x: coordinate(index % side), z: coordinate(Math.floor(index / side)) });
     const toIndex = (x, z) => THREE.MathUtils.clamp(Math.round((z - min) / step), 0, side - 1) * side + THREE.MathUtils.clamp(Math.round((x - min) / step), 0, side - 1);
@@ -952,6 +1041,11 @@ export function createWorld(canvas) {
     const place = mapPlaces.find(item => item.id === button.dataset.mapPlace);
     if (place) startMapWalk(place);
   });
+  function onWorldMapPlaceRequest(event) {
+    const place = mapPlaces.find(item => item.id === event.detail?.id);
+    if (place) startMapWalk(place);
+  }
+  window.addEventListener("world:map-place", onWorldMapPlaceRequest);
 
   function onKeyDown(event) {
     if (!visible) return;
@@ -980,6 +1074,21 @@ export function createWorld(canvas) {
     }
     activeEmote = name; activeEmoteTime = name === "Dance" ? 2 : name === "Wave" ? 1.2 : 1.1; avatar.setAnimation(name);
   }
+  function onRoomSeatRequest() {
+    if (insideRoom && insideRoom.sitSpots.length) playEmote("Sit");
+  }
+  function onAvatarEmote(event) {
+    if (!insideRoom || event.detail?.animation !== "Exercise") return;
+    activeEmote = "Exercise"; activeEmoteTime = 3.2; avatar.setAnimation("Exercise");
+  }
+  function onServeOrder(event) {
+    const agent = serviceAgents.find(item => item.roomId === insideRoom?.id && item.roomId === event.detail?.roomId);
+    if (!agent) return;
+    agent.from.copy(agent.group.position); agent.progress = 0; agent.state = "to-table"; agent.tray.visible = false;
+  }
+  window.addEventListener("world:sit-seat", onRoomSeatRequest);
+  window.addEventListener("world:avatar-emote", onAvatarEmote);
+  window.addEventListener("world:serve-order", onServeOrder);
   function moveJoystick(event) {
     const rect = joystick.getBoundingClientRect();
     const radius = Math.max(1, Math.min(rect.width, rect.height) * 0.34);
@@ -1101,7 +1210,8 @@ export function createWorld(canvas) {
         if (mapRouteActive) { mapRouteActive = false; worldMapPanel.hidden = true; worldMapButton?.setAttribute("aria-expanded", "false"); worldMapStatus.textContent = `You’re at ${destination.name}. Choose another place any time.`; }
         if (destination.id === "noodle-house") { if (findSchool) findSchool.textContent = "🥟 You’re at Food Street"; }
         else if (destination.id === "street-pho") { if (findCulture) findCulture.textContent = "🌏 You’re at Culture Street"; }
-        else if (findSchool) findSchool.textContent = "🏫 You’re at the School Gate";
+        else if (destination.id === "classroom") { if (findSchool) findSchool.textContent = "🏫 You’re at the School Gate"; }
+        else if (findSchool) findSchool.textContent = `📍 You’re at ${destination.name}`;
         showPlace(destination); movement.set(0, 0, 0);
       } else {
         const targetYaw = Math.atan2(-dx, -dz);
@@ -1146,8 +1256,8 @@ export function createWorld(canvas) {
       else horizontalVelocity.x = 0;
       if (!isBlockedOutdoor(player.position.x, nextZ)) player.position.z = nextZ;
       else horizontalVelocity.z = 0;
-      player.position.x = THREE.MathUtils.clamp(player.position.x, -42, 42);
-      player.position.z = THREE.MathUtils.clamp(player.position.z, -42, 42);
+      player.position.x = THREE.MathUtils.clamp(player.position.x, -56, 56);
+      player.position.z = THREE.MathUtils.clamp(player.position.z, -56, 56);
       const entered = exteriorEntrances.find(entrance => {
         const crossed = entrance.frontSign > 0 ? previousZ > entrance.facadeZ && player.position.z <= entrance.facadeZ : previousZ < entrance.facadeZ && player.position.z >= entrance.facadeZ;
         return crossed && Math.abs(player.position.x - entrance.x) < entrance.doorWidth / 2 - 0.45;
@@ -1179,6 +1289,18 @@ export function createWorld(canvas) {
     camera.lookAt(target.x, target.y + (activeEmote === "Sit" ? 0.16 : 0.35), target.z);
     markers.forEach(({ orb, ring }, i) => { orb.rotation.y += dt * 0.75; orb.position.y = 2.05 + Math.sin(time * 0.0015 + i) * 0.18; ring.material.opacity = 0.75 + Math.sin(time * 0.003 + i) * 0.2; });
     animatedLanterns.forEach(({ mesh, origin, phase }) => { mesh.position.y = origin + Math.sin(time * 0.0012 + phase) * 0.045; mesh.rotation.z = Math.sin(time * 0.0008 + phase) * 0.035; });
+    serviceAgents.forEach(agent => {
+      if (agent.state === "to-table") {
+        agent.progress = Math.min(1, agent.progress + dt / 1.55); agent.group.position.lerpVectors(agent.from, agent.to, agent.progress); agent.group.position.y = Math.abs(Math.sin(time * 0.006)) * 0.045;
+        if (agent.progress >= 1) { agent.state = "serving"; agent.wait = 2.3; agent.tray.visible = true; }
+      } else if (agent.state === "serving") {
+        agent.wait -= dt;
+        if (agent.wait <= 0) { agent.from.copy(agent.group.position); agent.progress = 0; agent.state = "to-counter"; }
+      } else if (agent.state === "to-counter") {
+        agent.progress = Math.min(1, agent.progress + dt / 1.7); agent.group.position.lerpVectors(agent.from, new THREE.Vector3(6.1, 0, 3.8), agent.progress); agent.group.position.y = Math.abs(Math.sin(time * 0.006)) * 0.045;
+        if (agent.progress >= 1) { agent.state = "idle"; agent.tray.visible = false; }
+      }
+    });
     landingTime = Math.max(0, landingTime - dt);
     if (!grounded || horizontalVelocity.lengthSq() > 0.025) {
       if (activeEmote === "Sit") {
@@ -1207,6 +1329,8 @@ export function createWorld(canvas) {
     running = false; cancelAnimationFrame(frame); resizeObserver.disconnect();
     window.removeEventListener("keydown", onKeyDown); window.removeEventListener("keyup", onKeyUp);
     window.removeEventListener("blur", onBlur); window.removeEventListener("lantern:profile", onProfile); window.removeEventListener("world:find-food", onFindFood);
+    window.removeEventListener("world:sit-seat", onRoomSeatRequest); window.removeEventListener("world:avatar-emote", onAvatarEmote); window.removeEventListener("world:serve-order", onServeOrder);
+    window.removeEventListener("world:map-place", onWorldMapPlaceRequest);
     roomExit?.removeEventListener("click", leaveRoom);
     canvas.removeEventListener("pointerdown", pointerDown); canvas.removeEventListener("pointermove", pointerMove); canvas.removeEventListener("pointerup", pointerUp); canvas.removeEventListener("pointercancel", pointerUp);
     emoteBar.remove();

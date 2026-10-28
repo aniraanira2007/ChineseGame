@@ -58,11 +58,43 @@ const CLASS_EXAM = [
   { prompt: "Choose the Chinese word for “study”.", answer: "学习", choices: ["谢谢", "学校", "学习", "你好"] },
   { prompt: "How do you say “goodbye” in Chinese?", answer: "再见", choices: ["再见", "你好", "学生", "朋友"] }
 ];
+const CULTURE_GAME_WORDS = [
+  { hanzi: "苹果", pinyin: "píngguǒ", meaning: "apple", emoji: "🍎" }, { hanzi: "香蕉", pinyin: "xiāngjiāo", meaning: "banana", emoji: "🍌" },
+  { hanzi: "橙子", pinyin: "chéngzi", meaning: "orange", emoji: "🍊" }, { hanzi: "西瓜", pinyin: "xīguā", meaning: "watermelon", emoji: "🍉" },
+  { hanzi: "桌子", pinyin: "zhuōzi", meaning: "table", emoji: "🪑" }, { hanzi: "椅子", pinyin: "yǐzi", meaning: "chair", emoji: "🪑" },
+  { hanzi: "房子", pinyin: "fángzi", meaning: "house", emoji: "🏠" }, { hanzi: "书", pinyin: "shū", meaning: "book", emoji: "📕" },
+  { hanzi: "猫", pinyin: "māo", meaning: "cat", emoji: "🐈" }, { hanzi: "狗", pinyin: "gǒu", meaning: "dog", emoji: "🐕" },
+  { hanzi: "牛奶", pinyin: "niúnǎi", meaning: "milk", emoji: "🥛" }, { hanzi: "鸡蛋", pinyin: "jīdàn", meaning: "egg", emoji: "🥚" }
+];
+const GYM_MACHINES = [
+  { id: "treadmill", name: "Treadmill", emoji: "🏃", move: "Easy walk", cue: "Start slowly, look forward, stay near the center, and use the safety stop. Hold the rails only while getting on or off." },
+  { id: "bike", name: "Exercise bike", emoji: "🚲", move: "Easy pedal", cue: "Adjust the seat so your knee stays slightly bent at the bottom of the pedal stroke. Sit tall and pedal gently." },
+  { id: "elliptical", name: "Elliptical", emoji: "🚶", move: "Smooth stride", cue: "Stand tall with both feet on the pedals. Move smoothly and keep your knees soft; hold the handles for balance." },
+  { id: "rower", name: "Rowing machine", emoji: "🚣", move: "Gentle row", cue: "Push with your legs first, lean back only a little, then bring the handle toward your lower ribs. Return in reverse order." },
+  { id: "chest-press", name: "Chest press", emoji: "💪", move: "Light press", cue: "Set a very light resistance. Keep wrists straight, shoulders relaxed, and elbows below shoulder height. Never lock your elbows." },
+  { id: "leg-press", name: "Leg press", emoji: "🦵", move: "Short press", cue: "Use light resistance, keep your whole foot on the platform, and stop before your knees lock or fold toward your chest." },
+  { id: "cable", name: "Cable station", emoji: "🏋️", move: "Standing pull", cue: "Choose the lightest setting. Stand balanced, keep your back neutral, and move slowly without twisting or jerking." },
+  { id: "stretch", name: "Stretch mat", emoji: "🧘", move: "Gentle stretch", cue: "Breathe normally and move only to a comfortable stretch. Do not bounce or push through pain." }
+];
+const RESTAURANT_MENU = {
+  breakfast: [{ hanzi: "豆浆", pinyin: "dòujiāng", meaning: "soy milk", emoji: "🥛" }, { hanzi: "包子", pinyin: "bāozi", meaning: "steamed bun", emoji: "🥟" }, { hanzi: "粥", pinyin: "zhōu", meaning: "rice porridge", emoji: "🥣" }, { hanzi: "鸡蛋", pinyin: "jīdàn", meaning: "egg", emoji: "🥚" }],
+  lunch: [{ hanzi: "米饭", pinyin: "mǐfàn", meaning: "rice", emoji: "🍚" }, { hanzi: "面条", pinyin: "miàntiáo", meaning: "noodles", emoji: "🍜" }, { hanzi: "饺子", pinyin: "jiǎozi", meaning: "dumplings", emoji: "🥟" }, { hanzi: "青菜", pinyin: "qīngcài", meaning: "green vegetables", emoji: "🥬" }],
+  dinner: [{ hanzi: "鱼", pinyin: "yú", meaning: "fish", emoji: "🐟" }, { hanzi: "鸡肉", pinyin: "jīròu", meaning: "chicken", emoji: "🍗" }, { hanzi: "汤", pinyin: "tāng", meaning: "soup", emoji: "🍲" }, { hanzi: "水果", pinyin: "shuǐguǒ", meaning: "fruit", emoji: "🍉" }]
+};
+const COFFEE_MENU = [{ hanzi: "咖啡", pinyin: "kāfēi", meaning: "coffee", emoji: "☕" }, { hanzi: "拿铁", pinyin: "nátiě", meaning: "latte", emoji: "🥛" }, { hanzi: "茶", pinyin: "chá", meaning: "tea", emoji: "🍵" }, { hanzi: "热水", pinyin: "rè shuǐ", meaning: "hot water", emoji: "🫖" }, { hanzi: "蛋糕", pinyin: "dàngāo", meaning: "cake", emoji: "🍰" }, { hanzi: "面包", pinyin: "miànbāo", meaning: "bread", emoji: "🍞" }];
+const MATH_QUESTIONS = [
+  { prompt: "一 + 一 = ?", pinyin: "yī jiā yī", meaning: "one plus one", choices: [["二", "èr · two"], ["三", "sān · three"], ["四", "sì · four"]], answer: "二", words: ["一", "二"] },
+  { prompt: "二 + 一 = ?", pinyin: "èr jiā yī", meaning: "two plus one", choices: [["三", "sān · three"], ["二", "èr · two"], ["五", "wǔ · five"]], answer: "三", words: ["二", "三"] },
+  { prompt: "五 − 二 = ?", pinyin: "wǔ jiǎn èr", meaning: "five minus two", choices: [["三", "sān · three"], ["四", "sì · four"], ["一", "yī · one"]], answer: "三", words: ["五", "二", "三"] },
+  { prompt: "How do you say ‘four’?", pinyin: "sì", meaning: "four", choices: [["四", "sì · four"], ["十", "shí · ten"], ["三", "sān · three"]], answer: "四", words: ["四"] },
+  { prompt: "三 + 二 = ?", pinyin: "sān jiā èr", meaning: "three plus two", choices: [["五", "wǔ · five"], ["六", "liù · six"], ["四", "sì · four"]], answer: "五", words: ["三", "二", "五"] }
+];
 
 export function mountSchool(root) {
   if (!root || root.dataset.mounted) return;
   root.dataset.mounted = "true";
   let questionIndex = 0, selectedAnswer = null, foodNpcStep = 0, collectionFilter = "week", activeCultureSpot = "pho", activeNpcQuest = "greeting", huntStarted = false, foodTimerId = null, foodTimeLeft = 45, foodRoundIndex = 0, foodRoundScore = 0, foodRoundActive = false, classExamIndex = 0, classExamCorrect = 0, classExamAnswered = false, classExamActive = false;
+  let cultureGameIndex = 0, cultureGameCorrect = 0, gymMachine = "treadmill", restaurantSeated = false, coffeeSeated = false, restaurantMeal = "breakfast", activeDish = "", mathIndex = 0, mathScore = 0, mathAnswered = false;
 
   function stopFoodClock() { if (foodTimerId) window.clearInterval(foodTimerId); foodTimerId = null; }
   function startFoodClock() {
@@ -81,17 +113,17 @@ export function mountSchool(root) {
     const profile = getProfile();
     const quest = profile.dailyQuest && profile.dailyQuest.date === today() ? Object.assign(emptyQuest(), profile.dailyQuest) : emptyQuest();
     const current = questions[questionIndex % questions.length];
-    const titles = { hub: "Welcome to school", classroom: "Chinese classroom", hunt: "Chinese Word Hunt", npcquests: "NPC Conversation Quests", timedfood: "Timed Food Street", foodquest: "Today’s food quest", lesson: "Picture lesson", words: "Weekly word book", talk: "Meet Mei", order: "Order at Food Street", circle: "Study circle", passport: "Discovery passport", culture: "Culture Street", hsk: "HSK 1 course" };
+    const titles = { hub: "Welcome to school", classroom: "Chinese classroom", hunt: "Chinese Word Hunt", npcquests: "NPC Conversation Quests", timedfood: "Timed Food Street", foodquest: "Today’s food quest", lesson: "Picture lesson", words: "Weekly word book", talk: "Meet Mei", order: "Order at Food Street", circle: "Study circle", passport: "Discovery passport", culture: "Culture Street", hsk: "HSK 1 course", culturegame: "Culture Memory House", gym: "Worldmates Gym", restaurant: "Shanghai Family Restaurant", math: "Chinese Math House", coffeehouse: "Shanghai Coffee Lab" };
     let content;
     try {
-      content = tab === "hub" ? hub(profile, quest, feedback) : tab === "classroom" ? classroom(profile, feedback, classExamActive ? classExamIndex : -1, classExamCorrect, classExamAnswered) : tab === "hunt" ? wordHunt(profile, huntStarted, feedback) : tab === "npcquests" ? npcQuestPanel(profile, activeNpcQuest, feedback) : tab === "timedfood" ? timedFood(profile, foodRoundActive, foodTimeLeft, foodRoundIndex, foodRoundScore, feedback) : tab === "foodquest" ? foodLesson(quest, feedback) : tab === "lesson" ? lesson(current, feedback) : tab === "words" ? collection(profile, collectionFilter) : tab === "talk" ? conversation(profile) : tab === "order" ? foodOrder(quest, feedback, foodNpcStep) : tab === "circle" ? circle() : tab === "passport" ? passport(profile) : tab === "culture" ? cultureActivity(profile, activeCultureSpot, feedback) : '<div class="school-course-host" id="school-course-host"><p class="school-loading">Opening your HSK course…</p></div>';
+      content = tab === "hub" ? hub(profile, quest, feedback) : tab === "classroom" ? classroom(profile, feedback, classExamActive ? classExamIndex : -1, classExamCorrect, classExamAnswered) : tab === "hunt" ? wordHunt(profile, huntStarted, feedback) : tab === "npcquests" ? npcQuestPanel(profile, activeNpcQuest, feedback) : tab === "timedfood" ? timedFood(profile, foodRoundActive, foodTimeLeft, foodRoundIndex, foodRoundScore, feedback) : tab === "foodquest" ? foodLesson(quest, feedback) : tab === "lesson" ? lesson(current, feedback) : tab === "words" ? collection(profile, collectionFilter) : tab === "talk" ? conversation(profile) : tab === "order" ? foodOrder(quest, feedback, foodNpcStep) : tab === "circle" ? circle() : tab === "passport" ? passport(profile) : tab === "culture" ? cultureActivity(profile, activeCultureSpot, feedback) : tab === "culturegame" ? cultureGame(cultureGameIndex, feedback) : tab === "gym" ? gymPanel(gymMachine, feedback) : tab === "restaurant" ? eateryPanel("restaurant", restaurantSeated, restaurantMeal, activeDish, feedback) : tab === "coffeehouse" ? eateryPanel("coffeehouse", coffeeSeated, restaurantMeal, activeDish, feedback) : tab === "math" ? mathPanel(mathIndex, mathScore, mathAnswered, feedback) : '<div class="school-course-host" id="school-course-host"><p class="school-loading">Opening your HSK course…</p></div>';
     } catch (error) {
       console.error("Unable to open school activity:", error);
       content = '<section class="school-empty" role="alert"><span>📚</span><b>This activity could not be opened</b><p>Please try another school activity, then reopen this one.</p></section>';
     }
     root.innerHTML = '<section class="school-panel" role="dialog" aria-modal="true" aria-labelledby="school-title"><header class="school-header"><div><p class="school-kicker">WORLDMATES SCHOOL · CAMPUS LIFE</p><h2 id="school-title">' + safe(titles[tab] || titles.hub) + '</h2><p>Meet classmates, practise languages, and explore cultures through everyday school life.</p></div><button type="button" class="school-close" data-school-close aria-label="Close school">×</button></header><nav class="school-tabs" aria-label="School activities"><button data-school-tab="hub" class="' + (tab === "hub" ? "selected" : "") + '">Campus</button><button data-school-tab="classroom" class="' + (tab === "classroom" ? "selected" : "") + '">Chinese class</button><button data-school-tab="hunt" class="' + (tab === "hunt" ? "selected" : "") + '">Word Hunt</button><button data-school-tab="npcquests" class="' + (tab === "npcquests" ? "selected" : "") + '">NPC Quests</button><button data-school-tab="timedfood" class="' + (tab === "timedfood" ? "selected" : "") + '">Timed Food</button><button data-school-tab="foodquest" class="' + (tab === "foodquest" ? "selected" : "") + '">Daily quest</button><button data-school-tab="lesson" class="' + (tab === "lesson" ? "selected" : "") + '">Quick lesson</button><button data-school-tab="words" class="' + (tab === "words" ? "selected" : "") + '">Word book</button><button data-school-tab="culture" class="' + (tab === "culture" ? "selected" : "") + '">Culture Street</button><button data-school-tab="passport" class="' + (tab === "passport" ? "selected" : "") + '">Passport</button><button data-school-tab="circle" class="' + (tab === "circle" ? "selected" : "") + '">Study circle</button><button data-school-tab="hsk" class="' + (tab === "hsk" ? "selected" : "") + '">Full HSK 1</button></nav><div class="school-content" id="school-content">' + content + '</div></section>';
     root.querySelector("[data-school-close]").addEventListener("click", close);
-    if (tab === "hub") root.querySelector("#school-content")?.insertAdjacentHTML("beforeend", badgeCollection(profile));
+    if (tab === "hub") root.querySelector("#school-content")?.insertAdjacentHTML("beforeend", badgeCollection(profile) + '<section class="new-world-activities"><p class="school-kicker">FIVE NEW WALK-IN PLACES</p><div class="new-world-activity-grid"><button data-world-place="culture-house"><span>🍎</span><b>Culture Memory House</b><small>Walk there · picture guessing</small></button><button data-world-place="gym"><span>🏋️</span><b>Worldmates Gym</b><small>Walk there · eight machines</small></button><button data-world-place="restaurant"><span>🍜</span><b>Shanghai Restaurant</b><small>Walk there · meals in Chinese</small></button><button data-world-place="math-house"><span>➕</span><b>Chinese Math House</b><small>Walk there · Teacher Wang</small></button><button data-world-place="coffee-house"><span>☕</span><b>Shanghai Coffee Lab</b><small>Walk there · café Chinese</small></button></div></section>');
     root.querySelector("[data-class-register]")?.addEventListener("submit", event => {
       event.preventDefault();
       const studentName = String(new FormData(event.currentTarget).get("studentName") || "").trim().slice(0, 24);
@@ -218,10 +250,59 @@ export function mountSchool(root) {
     });
     root.querySelector("[data-start-circle]")?.addEventListener("click", () => { questionIndex = 0; selectedAnswer = null; render("lesson"); });
     root.querySelector("[data-school-course-retry]")?.addEventListener("click", () => window.dispatchEvent(new CustomEvent("lantern:school-course")));
+    root.querySelector("[data-culture-game-answer]")?.addEventListener("click", event => {
+      const choice = event.target.closest("[data-culture-word]"); if (!choice) return;
+      const word = CULTURE_GAME_WORDS[cultureGameIndex % CULTURE_GAME_WORDS.length];
+      if (choice.dataset.cultureWord !== word.hanzi) { render("culturegame", { kind: "error", text: "Not quite. Look at the picture and clue, then try another word." }); return; }
+      cultureGameCorrect++;
+      const fresh = getProfile(), found = fresh.cultureMemoryFound || [], firstTime = !found.includes(word.hanzi);
+      addLearnedWord({ hanzi: word.hanzi, pinyin: word.pinyin, meaning: word.meaning, learnedAt: today() });
+      updateProfile({ cultureMemoryFound: firstTime ? [...found, word.hanzi] : found, xp: fresh.xp + (firstTime ? 4 : 0), coins: fresh.coins + (firstTime ? 1 : 0) });
+      const nextIndex = (cultureGameIndex + 1) % CULTURE_GAME_WORDS.length; cultureGameIndex = nextIndex;
+      speak(word.hanzi);
+      render("culturegame", { kind: "success", text: `Correct! ${word.hanzi} · ${word.pinyin} means “${word.meaning}”. ${firstTime ? "+4 XP · +1 coin; saved to your word book." : "Already in your word book."}` });
+    });
+    root.querySelector("[data-culture-game-speak]")?.addEventListener("click", () => speak(CULTURE_GAME_WORDS[cultureGameIndex % CULTURE_GAME_WORDS.length].hanzi));
+    root.querySelectorAll("[data-gym-machine]").forEach(button => button.addEventListener("click", () => { gymMachine = button.dataset.gymMachine; render("gym"); }));
+    root.querySelector("[data-gym-demo]")?.addEventListener("click", () => window.dispatchEvent(new CustomEvent("world:avatar-emote", { detail: { animation: "Exercise" } })));
+    root.querySelector("[data-restaurant-seat]")?.addEventListener("click", () => { restaurantSeated = true; window.dispatchEvent(new CustomEvent("world:sit-seat")); render("restaurant", { kind: "success", text: "You’re seated. The waitress is ready with the menu." }); });
+    root.querySelector("[data-coffee-seat]")?.addEventListener("click", () => { coffeeSeated = true; window.dispatchEvent(new CustomEvent("world:sit-seat")); render("coffeehouse", { kind: "success", text: "Take a seat. The barista has the café menu." }); });
+    root.querySelectorAll("[data-meal]").forEach(button => button.addEventListener("click", () => { restaurantMeal = button.dataset.meal; activeDish = ""; render(tab); }));
+    root.querySelectorAll("[data-menu-dish]").forEach(button => button.addEventListener("click", () => { activeDish = button.dataset.menuDish; const dish = [...RESTAURANT_MENU.breakfast, ...RESTAURANT_MENU.lunch, ...RESTAURANT_MENU.dinner, ...COFFEE_MENU].find(item => item.hanzi === activeDish); if (dish) speak(dish.hanzi); render(tab); }));
+    root.querySelector("[data-menu-pronounce]")?.addEventListener("click", () => { const dish = [...RESTAURANT_MENU.breakfast, ...RESTAURANT_MENU.lunch, ...RESTAURANT_MENU.dinner, ...COFFEE_MENU].find(item => item.hanzi === activeDish); if (dish) speak(dish.hanzi); });
+    root.querySelector("[data-menu-order]")?.addEventListener("click", () => {
+      const isCoffee = tab === "coffeehouse", roomId = isCoffee ? "coffee-house" : "restaurant", dish = [...RESTAURANT_MENU.breakfast, ...RESTAURANT_MENU.lunch, ...RESTAURANT_MENU.dinner, ...COFFEE_MENU].find(item => item.hanzi === activeDish);
+      if (!dish) return;
+      const fresh = getProfile(), claimed = fresh.socialMealRewards || {}, key = roomId + ":" + today(), firstOrderToday = !claimed[key];
+      addLearnedWord({ hanzi: dish.hanzi, pinyin: dish.pinyin, meaning: dish.meaning, learnedAt: today() });
+      updateProfile({ socialMealRewards: { ...claimed, [key]: true }, xp: fresh.xp + (firstOrderToday ? 5 : 0), coins: fresh.coins + (firstOrderToday ? 2 : 0) });
+      window.dispatchEvent(new CustomEvent("world:serve-order", { detail: { roomId, dish: dish.hanzi } }));
+      render(tab, { kind: "success", text: `你点了${dish.hanzi}！ ${dish.pinyin} means “${dish.meaning}”. ${isCoffee ? "The barista is preparing it." : "The waitress is walking over with your order."} ${firstOrderToday ? "+5 XP · +2 coins." : "Daily order reward already collected."}` });
+    });
+    root.querySelector("[data-math-answers]")?.addEventListener("click", event => {
+      const button = event.target.closest("[data-math-answer]"); if (!button || mathAnswered) return;
+      const question = MATH_QUESTIONS[mathIndex], correct = button.dataset.mathAnswer === question.answer;
+      mathAnswered = true; if (correct) mathScore++;
+      render("math", { kind: correct ? "success" : "error", text: correct ? "Correct! " + question.answer + " · " + question.pinyin + "." : `The answer is ${question.answer} · ${question.pinyin}. Keep going!` });
+    });
+    root.querySelector("[data-math-speak]")?.addEventListener("click", event => speak(event.currentTarget.dataset.mathSpeak));
+    root.querySelector("[data-math-next]")?.addEventListener("click", () => {
+      if (mathIndex + 1 < MATH_QUESTIONS.length) { mathIndex++; mathAnswered = false; render("math"); return; }
+      const fresh = getProfile(), score = Math.round(mathScore / MATH_QUESTIONS.length * 100), reward = fresh.mathHouseRewardDate !== today();
+      MATH_QUESTIONS.flatMap(item => item.words).forEach(addWord);
+      updateProfile({ mathHouseRewardDate: today(), mathHouseBest: Math.max(fresh.mathHouseBest || 0, score), mathHouseLastScore: score, xp: fresh.xp + (reward ? 12 : 0), coins: fresh.coins + (reward ? 4 : 0) });
+      mathIndex = 0; mathScore = 0; mathAnswered = false;
+      render("math", { kind: "success", text: `Lesson complete: ${score}% · ${reward ? "+12 XP · +4 coins." : "Daily lesson reward already collected."} Number words were added to your word book.` });
+    });
     if (tab === "timedfood" && foodRoundActive) startFoodClock();
   }
 
-  function addWord(hanzi) { const entry = words.get(hanzi) || WORD_HUNT.find(item => item.hanzi === hanzi); if (entry) addLearnedWord(entry); }
+  function addWord(hanzi) {
+    const bundled = words.get(hanzi) || WORD_HUNT.find(item => item.hanzi === hanzi) || CULTURE_GAME_WORDS.find(item => item.hanzi === hanzi) || [...RESTAURANT_MENU.breakfast, ...RESTAURANT_MENU.lunch, ...RESTAURANT_MENU.dinner, ...COFFEE_MENU].find(item => item.hanzi === hanzi);
+    const numberWords = { "一": ["yī", "one"], "二": ["èr", "two"], "三": ["sān", "three"], "四": ["sì", "four"], "五": ["wǔ", "five"], "六": ["liù", "six"], "七": ["qī", "seven"], "八": ["bā", "eight"], "九": ["jiǔ", "nine"], "十": ["shí", "ten"] };
+    const entry = bundled || (numberWords[hanzi] ? { hanzi, pinyin: numberWords[hanzi][0], meaning: numberWords[hanzi][1] } : null);
+    if (entry) addLearnedWord({ hanzi: entry.hanzi, pinyin: entry.pinyin, meaning: entry.meaning, learnedAt: today() });
+  }
   function resolveWordHuntSpot(spotId) {
     if (!huntStarted) { render("hunt", { kind: "info", text: "Start the Word Hunt first to receive your clue." }); return; }
     const profile = getProfile(), found = profile.wordHuntFound || [], target = WORD_HUNT.find(item => !found.includes(item.id));
@@ -237,6 +318,8 @@ export function mountSchool(root) {
     else { const next = WORD_HUNT.find(item => !nextFound.includes(item.id)); render("hunt", { kind: "success", text: "Found " + target.object + "! “" + target.hanzi + "” is now in your word book · +12 XP · +3 coins. Next clue: " + next.clue }); }
   }
   root.addEventListener("click", event => {
+    const worldPlace = event.target.closest("[data-world-place]");
+    if (worldPlace && root.contains(worldPlace)) { const id = worldPlace.dataset.worldPlace; close(); window.dispatchEvent(new CustomEvent("world:map-place", { detail: { id } })); return; }
     const cultureButton = event.target.closest("[data-culture-spot]");
     if (cultureButton && root.contains(cultureButton)) { activeCultureSpot = cultureButton.dataset.cultureSpot; render("culture"); return; }
     const tabButton = event.target.closest("[data-school-tab]");
@@ -248,7 +331,7 @@ export function mountSchool(root) {
     }
     if (event.target === root) close();
   });
-  window.addEventListener("lantern:open-school", event => { foodNpcStep = 0; activeCultureSpot = event.detail?.cultureSpot || activeCultureSpot; open(event.detail?.tab || "hub"); if (event.detail?.huntSpot) resolveWordHuntSpot(event.detail.huntSpot); });
+  window.addEventListener("lantern:open-school", event => { foodNpcStep = 0; activeCultureSpot = event.detail?.cultureSpot || activeCultureSpot; gymMachine = event.detail?.machineId || gymMachine; open(event.detail?.tab || "hub"); if (event.detail?.huntSpot) resolveWordHuntSpot(event.detail.huntSpot); });
   window.addEventListener("lantern:school-course-ready", () => {
     const host = root.querySelector("#school-course-host"); if (!host) return;
     const course = document.querySelector("#hsk-course"), practice = document.querySelector("#picture-practice");
@@ -256,6 +339,28 @@ export function mountSchool(root) {
     if (practice && !host.contains(practice)) host.append(practice);
   });
   render("hub");
+}
+
+function activityFeedback(feedback) { return feedback ? '<p class="school-feedback" role="status">' + safe(feedback.text) + '</p>' : ""; }
+function cultureGame(index, feedback) {
+  const target = CULTURE_GAME_WORDS[index % CULTURE_GAME_WORDS.length], options = [target, CULTURE_GAME_WORDS[(index + 3) % CULTURE_GAME_WORDS.length], CULTURE_GAME_WORDS[(index + 6) % CULTURE_GAME_WORDS.length], CULTURE_GAME_WORDS[(index + 9) % CULTURE_GAME_WORDS.length]];
+  return '<section class="house-activity culture-memory"><p class="school-kicker">PICTURE GUESS · FRUIT & EVERYDAY OBJECTS</p><div class="picture-clue"><span>' + target.emoji + '</span><div><b>What is in the picture?</b><small>Choose the Chinese word for “' + safe(target.meaning) + '”. Listen, then check its pinyin.</small></div><button data-culture-game-speak aria-label="Hear Chinese word">🔊</button></div><div class="house-choice-grid" data-culture-game-answer>' + options.map(item => '<button data-culture-word="' + item.hanzi + '"><span>' + item.emoji + '</span><b lang="zh">' + item.hanzi + '</b></button>').join("") + '</div><p class="house-progress">' + ((getProfile().cultureMemoryFound || []).length) + '/12 words saved · Correct answers add words to your shared profile.</p>' + activityFeedback(feedback) + '</section>';
+}
+function gymPanel(machineId, feedback) {
+  const selected = GYM_MACHINES.find(item => item.id === machineId) || GYM_MACHINES[0];
+  return '<section class="house-activity"><p class="school-kicker">BEGINNER GYM · EIGHT STATIONS</p><p class="house-safety">Start gently. The tips are beginner guidance, not medical advice. Stop if something hurts and ask a qualified adult or trainer for help.</p><div class="gym-machine-grid">' + GYM_MACHINES.map(item => '<button data-gym-machine="' + item.id + '" class="' + (item.id === selected.id ? "selected" : "") + '"><span>' + item.emoji + '</span><b>' + safe(item.name) + '</b></button>').join("") + '</div><article class="gym-guide"><span>' + selected.emoji + '</span><div><h3>' + safe(selected.name) + ' · ' + safe(selected.move) + '</h3><p>' + safe(selected.cue) + '</p><button class="primary-btn" data-gym-demo>▶ Watch my avatar demonstrate</button></div></article><p class="house-note">Your avatar plays a short exercise motion. Machine-specific animation clips are not included in the current character asset; follow the written form cue.</p>' + activityFeedback(feedback) + '</section>';
+}
+function eateryPanel(tab, seated, meal, selectedHanzi, feedback) {
+  const coffee = tab === "coffeehouse", menu = coffee ? COFFEE_MENU : RESTAURANT_MENU[meal] || RESTAURANT_MENU.breakfast;
+  const selected = [...COFFEE_MENU, ...RESTAURANT_MENU.breakfast, ...RESTAURANT_MENU.lunch, ...RESTAURANT_MENU.dinner].find(item => item.hanzi === selectedHanzi);
+  const title = coffee ? "Coffee & tea · 咖啡和茶" : "Breakfast · lunch · dinner · 早饭 午饭 晚饭";
+  const mealTabs = coffee ? "" : '<div class="meal-tabs">' + ["breakfast", "lunch", "dinner"].map(item => '<button data-meal="' + item + '" class="' + (meal === item ? "selected" : "") + '">' + ({ breakfast: "Breakfast 早饭", lunch: "Lunch 午饭", dinner: "Dinner 晚饭" })[item] + '</button>').join("") + '</div>';
+  const menuContent = seated ? mealTabs + '<p class="house-note">Tap a dish to hear it. Its pinyin and translation will appear before you order.</p><div class="menu-dish-grid">' + menu.map(item => '<button data-menu-dish="' + item.hanzi + '" class="' + (selectedHanzi === item.hanzi ? "selected" : "") + '"><span>' + item.emoji + '</span><b lang="zh">' + item.hanzi + '</b><small>' + safe(item.meaning) + '</small></button>').join("") + '</div>' + (selected ? '<article class="selected-dish"><span>' + selected.emoji + '</span><div><b lang="zh">' + selected.hanzi + '</b><small>' + safe(selected.pinyin) + ' · ' + safe(selected.meaning) + '</small></div><button data-menu-pronounce>🔊 Listen</button><button class="primary-btn" data-menu-order>Place order →</button></article>' : "") : '<div class="seat-first"><span>🪑</span><b>Choose a table first</b><p>Walk to a chair in the room and sit, or tap below to sit at the nearest table. Then the menu opens.</p><button class="primary-btn" data-' + (coffee ? "coffee" : "restaurant") + '-seat>🪑 Sit down and ask for the menu</button></div>';
+  return '<section class="house-activity eatery-activity"><p class="school-kicker">' + (coffee ? "SHANGHAI COFFEE LAB · NPC BARISTA" : "SHANGHAI FAMILY RESTAURANT · NPC WAITRESS") + '</p><h3>' + title + '</h3>' + (seated ? '<div class="waitress-note">' + (coffee ? "☕ The barista is ready to take your order." : "👩🏻‍🍳 Your waitress brings the menu to your table.") + '</div>' : "") + menuContent + activityFeedback(feedback) + '</section>';
+}
+function mathPanel(index, score, answered, feedback) {
+  const question = MATH_QUESTIONS[index % MATH_QUESTIONS.length], profile = getProfile();
+  return '<section class="house-activity math-activity"><p class="school-kicker">TEACHER WANG · 王老师 · BEGINNER NUMBERS</p><div class="math-teacher"><span>👩🏻‍🏫</span><div><b>老师：Let’s count together!</b><small>Listen to the Chinese numbers, then choose an answer.</small></div><button data-math-speak="' + safe(question.prompt) + '" aria-label="Hear question">🔊</button></div><div class="math-question"><b lang="zh">' + safe(question.prompt) + '</b><span>' + safe(question.pinyin) + '</span><small>' + safe(question.meaning) + '</small></div><div class="house-choice-grid math-choices" data-math-answers>' + question.choices.map(choice => '<button data-math-answer="' + choice[0] + '" ' + (answered ? "disabled" : "") + '><b lang="zh">' + choice[0] + '</b><small>' + safe(choice[1]) + '</small></button>').join("") + '</div><p class="house-progress">Question ' + (index + 1) + '/5 · Score ' + score + ' · Best ' + (profile.mathHouseBest || 0) + '%</p>' + (answered ? '<button class="primary-btn" data-math-next>' + (index + 1 < MATH_QUESTIONS.length ? "Next question →" : "Finish lesson and save score →") + '</button>' : "") + activityFeedback(feedback) + '</section>';
 }
 
 function hub(profile, quest, feedback) {

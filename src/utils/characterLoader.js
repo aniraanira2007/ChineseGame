@@ -243,7 +243,7 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
   let mixer = null, actions = new Map(), currentAction = null, model = null, loaded = false;
   let currentState = "Idle";
   let proceduralTime = 0;
-  const proceduralStates = new Set(["jump", "land", "wave", "sit", "dance", "celebrate"]);
+  const proceduralStates = new Set(["jump", "land", "wave", "sit", "dance", "celebrate", "exercise"]);
   const restPose = new Map();
   let armBones = [];
   let baseModelScale = new THREE.Vector3(1, 1, 1);
@@ -308,7 +308,7 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
     action.reset();
     action.enabled = true;
     action.setEffectiveWeight(1);
-    const oneShot = ["jump", "land", "wave", "sit", "celebrate"].includes(key);
+    const oneShot = ["jump", "land", "wave", "sit", "celebrate", "exercise"].includes(key);
     action.setLoop(oneShot ? THREE.LoopOnce : THREE.LoopRepeat, oneShot ? 1 : Infinity);
     action.clampWhenFinished = true;
     if (currentAction) action.crossFadeFrom(currentAction, crossFade, true);
@@ -336,6 +336,7 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
       const sit = currentState === "sit";
       const dance = currentState === "dance";
       const celebrate = currentState === "celebrate";
+      const exercise = currentState === "exercise";
       const jump = currentState === "jump";
       const land = currentState === "land";
       const walking = currentState === "walk" || currentState === "run";
@@ -355,6 +356,7 @@ export function createCharacter({ characterId = "sakura-street", outfitId, playe
         else if (walking && upper) offset.setFromEuler(new THREE.Euler((right ? 1 : -1) * swing * (shoulder ? 0.1 : 0.38), 0, (right ? -1 : 1) * relaxAngle));
         else if (proceduralLocomotion && upper) offset.setFromEuler(new THREE.Euler(0, 0, (right ? -1 : 1) * relaxAngle));
         else if (dance && upper) offset.setFromEuler(new THREE.Euler(0, Math.sin(proceduralTime * 5) * 0.28, (right ? -1 : 1) * (0.45 + Math.sin(proceduralTime * 5) * 0.2)));
+        else if (exercise && upper) offset.setFromEuler(new THREE.Euler(-0.45 + Math.sin(proceduralTime * 5) * 0.24, 0, (right ? -1 : 1) * (0.62 + Math.sin(proceduralTime * 5 + (right ? 0 : Math.PI)) * 0.18)));
         else if (sit && upper) offset.setFromEuler(new THREE.Euler(-0.12, 0, right ? -0.88 : 0.88));
         else if (sit && name.includes("forearm")) offset.setFromEuler(new THREE.Euler(-0.55, 0, 0));
         if (character.renderStyle === "vrm") bone.quaternion.copy(offset).multiply(base);
