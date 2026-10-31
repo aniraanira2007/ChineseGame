@@ -1198,7 +1198,11 @@ export function createWorld(canvas) {
     const speed = runningFast ? 8.6 : 4.7;
     const direction = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
     const right = new THREE.Vector3(direction.z, 0, -direction.x);
-    let movement = direction.multiplyScalar(-forward).add(right.multiplyScalar(side));
+    // Indoor rooms put the camera on the opposite side of the avatar so the
+    // room stays visible. That reverses screen-space left/right, so mirror the
+    // strafe input indoors while keeping forward/backward unchanged.
+    const cameraRelativeSide = insideRoom ? -side : side;
+    let movement = direction.multiplyScalar(-forward).add(right.multiplyScalar(cameraRelativeSide));
     if (autoWalkTarget && !insideRoom) {
       const waypoint = autoWalkWaypoints[0] || new THREE.Vector3(autoWalkTarget.x, 0, autoWalkTarget.z);
       const dx = waypoint.x - player.position.x, dz = waypoint.z - player.position.z;
