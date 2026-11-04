@@ -128,6 +128,7 @@ export function createWorld(canvas) {
     const pearl = new THREE.Mesh(sphereGeo, mat(y === 4 ? "#c77b72" : "#d9a56c", 0.48)); pearl.position.set(24, y, -64); pearl.scale.setScalar(radius); scene.add(pearl);
   }
   const exteriorEntrances = [];
+  const animatedDoorways = [];
   const roomIdByBuilding = { "Lantern Chinese School": "classroom", "Tea House": "teahouse", Bookshop: "library", "Student House": "home", "Shanghai Noodle House": "food", "Dumpling & Tea": "dumpling", "Shanghai Coffee": "cafe", "World Culture Museum": "museum", "Art & Music Studio": "studio", "Riverside Garden": "garden", "Culture Memory House": "culture-house", "Worldmates Gym": "gym", "Shanghai Family Restaurant": "restaurant", "Chinese Math House": "math-house", "Shanghai Coffee Lab": "coffee-house" };
   const buildingFootprints = [];
   function building(x, z, width, depth, height, wall, roof, label, sign = "学") {
@@ -153,7 +154,9 @@ export function createWorld(canvas) {
       { type: "box", x: x - (doorWidth + sideSegment) / 2, z: facadeZ, halfX: sideSegment / 2, halfZ: wallThickness },
       { type: "box", x: x + (doorWidth + sideSegment) / 2, z: facadeZ, halfX: sideSegment / 2, halfZ: wallThickness },
     );
-    if (roomIdByBuilding[label]) exteriorEntrances.push({ roomId: roomIdByBuilding[label], x, z, frontSign, facadeZ, doorWidth });
+    const doorway = { roomId: roomIdByBuilding[label] || null, x, z, frontSign, facadeZ, doorWidth, doors: [] };
+    animatedDoorways.push(doorway);
+    if (doorway.roomId) exteriorEntrances.push(doorway);
     const sideWidth = (width - doorWidth) / 2;
     block(x - (doorWidth + sideWidth) / 2, height / 2, facadeZ, sideWidth, height, 0.3, wall);
     block(x + (doorWidth + sideWidth) / 2, height / 2, facadeZ, sideWidth, height, 0.3, wall);
@@ -161,10 +164,18 @@ export function createWorld(canvas) {
     block(x - doorWidth / 2 - 0.11, 1.15, facadeZ + frontSign * 0.08, 0.22, 2.3, 0.24, materials.wood);
     block(x + doorWidth / 2 + 0.11, 1.15, facadeZ + frontSign * 0.08, 0.22, 2.3, 0.24, materials.wood);
     block(x, 2.32, facadeZ + frontSign * 0.08, doorWidth + 0.44, 0.24, 0.24, materials.gold);
-    // Door recess and shallow steps make the entrance legible at player height.
-    const leftDoor = block(x - doorWidth * 0.43, 1.08, facadeZ + frontSign * 0.24, 0.14, 2.08, doorWidth * 0.43, materials.wood);
-    const rightDoor = block(x + doorWidth * 0.43, 1.08, facadeZ + frontSign * 0.24, 0.14, 2.08, doorWidth * 0.43, materials.wood);
-    leftDoor.rotation.y = -frontSign * 0.68; rightDoor.rotation.y = frontSign * 0.68;
+    // Doors begin closed across the opening and swing inward when the player
+    // approaches. Pivot groups keep the panels attached at their outer hinges.
+    for (const side of [-1, 1]) {
+      const hinge = new THREE.Group();
+      hinge.position.set(x + side * doorWidth / 2, 1.08, facadeZ + frontSign * 0.24);
+      const leaf = new THREE.Mesh(boxGeo, materials.wood);
+      leaf.scale.set(doorWidth / 2, 2.08, 0.14);
+      leaf.position.x = -side * doorWidth / 4;
+      leaf.castShadow = true; leaf.receiveShadow = true;
+      hinge.add(leaf); scene.add(hinge);
+      doorway.doors.push({ hinge, side, openAngle: -side * frontSign * 1.05 });
+    }
     block(x, 0.15, facadeZ + frontSign * 0.9, doorWidth + 1.4, 0.3, 1.5, materials.stone, false);
     for (let i = -1; i <= 1; i++) {
       const wx = x + i * width * 0.27;
@@ -1190,6 +1201,12 @@ export function createWorld(canvas) {
     plazaBalloons.forEach(({ group, phase }) => {
       group.position.y = Math.sin(time * 0.0014 + phase) * 0.1;
       group.rotation.z = Math.sin(time * 0.001 + phase) * 0.045;
+    });
+    animatedDoorways.forEach(doorway => {
+      const nearEntrance = Math.hypot(player.position.x - doorway.x, player.position.z - doorway.facadeZ) < 7.5;
+      doorway.doors.forEach(({ hinge, openAngle }) => {
+        hinge.rotation.y = THREE.MathUtils.damp(hinge.rotation.y, nearEntrance ? openAngle : 0, 5.5, dt);
+      });
     });
     const forward = THREE.MathUtils.clamp(Number(keys.has("KeyW") || keys.has("ArrowUp") || heldTouch.has("KeyW")) - Number(keys.has("KeyS") || keys.has("ArrowDown") || heldTouch.has("KeyS")) + joystickVector.y, -1, 1);
     const side = THREE.MathUtils.clamp(Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA")) + joystickVector.x, -1, 1);
