@@ -837,6 +837,7 @@ export function createWorld(canvas) {
   let autoWalkWaypoints = [];
   let insideRoom = null;
   let pendingRoomEntry = null;
+  let dismissedDoorRoomId = null;
   let sitCameraYaw = 0;
   let running = true;
   const dialog = document.querySelector("#world-interaction");
@@ -903,14 +904,19 @@ export function createWorld(canvas) {
     const wordsNeeded = Math.max(0, (place.requireWords || 0) - wordsCollected);
     const isLocked = wordsNeeded > 0;
     dialog.hidden = false;
-    dialog.innerHTML = `<button class="interaction-close" aria-label="Close">×</button><span class="interaction-icon">${place.icon}</span><p class="eyebrow">${isLocked ? "CAMPUS GOAL" : "YOU FOUND A PLACE"}</p><h2>${escapeHtml(place.name)}</h2><p>${escapeHtml(isLocked ? `Collect ${wordsNeeded} more Chinese words to unlock this location. You have ${wordsCollected} so far.` : place.detail)}</p><button class="primary-btn interaction-action" ${isLocked ? "disabled" : ""}>${escapeHtml(isLocked ? `Unlock after ${place.requireWords} words` : place.action)} <span>${isLocked ? "🔒" : "→"}</span></button>`;
-    dialog.querySelector(".interaction-close").addEventListener("click", hidePlace);
+    const detail = place.route === "room" ? `You’re at the entrance to ${place.name}. Open the door to go inside.` : place.detail;
+    const action = place.route === "room" ? "Open door & enter" : place.action;
+    dialog.innerHTML = `<button class="interaction-close" aria-label="Close">×</button><span class="interaction-icon">${place.icon}</span><p class="eyebrow">${isLocked ? "CAMPUS GOAL" : "YOU FOUND A PLACE"}</p><h2>${escapeHtml(place.name)}</h2><p>${escapeHtml(isLocked ? `Collect ${wordsNeeded} more Chinese words to unlock this location. You have ${wordsCollected} so far.` : detail)}</p><button class="primary-btn interaction-action" ${isLocked ? "disabled" : ""}>${escapeHtml(isLocked ? `Unlock after ${place.requireWords} words` : action)} <span>${isLocked ? "🔒" : "→"}</span></button>`;
+    dialog.querySelector(".interaction-close").addEventListener("click", () => {
+      if (place.route === "room") dismissedDoorRoomId = place.roomId;
+      hidePlace();
+    });
     dialog.querySelector(".interaction-action").addEventListener("click", () => {
       if (isLocked) return;
       const firstVisit = rewardWorldVisit(place.id);
       if (place.route === "room") {
         const doorway = animatedDoorways.find(item => item.roomId === place.roomId);
-        if (doorway) { doorway.openRequested = true; pendingRoomEntry = place.roomId; }
+        if (doorway) { dismissedDoorRoomId = place.roomId; doorway.openRequested = true; pendingRoomEntry = place.roomId; }
         else enterRoom(place.roomId);
         return;
       }
@@ -922,7 +928,10 @@ export function createWorld(canvas) {
   function hidePlace() { dialog.hidden = true; activePlace = null; }
   function escapeHtml(str) { return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
   function openNearest() {
-    if (activePlace) { hidePlace(); return; }
+    if (activePlace) {
+      if (activePlace.route === "room") dismissedDoorRoomId = activePlace.roomId;
+      hidePlace(); return;
+    }
     let closest = null, best = 100;
     for (const { place } of (insideRoom ? insideRoom.markers : markers)) {
       const d = (player.position.x - place.x) ** 2 + (player.position.z - place.z) ** 2;
@@ -1211,6 +1220,22 @@ export function createWorld(canvas) {
   function animate(time) {
     if (!running || !visible) return;
     const dt = Math.min((time - previousTime) / 1000 || 0, 0.04); previousTime = time;
+    if (!insideRoom && !pendingRoomEntry) {
+      const nearbyDoor = exteriorEntrances
+        .map(doorway => ({ doorway, distance: Math.hypot(player.position.x - doorway.x, player.position.z - doorway.facadeZ) }))
+        .filter(({ doorway, distance }) => doorway.roomId !== dismissedDoorRoomId
+          && distance < 3.8
+          && doorway.frontSign * (player.position.z - doorway.facadeZ) > -0.2)
+        .sort((a, b) => a.distance - b.distance)[0];
+      if (nearbyDoor && !activePlace) {
+        const place = landmarks.find(item => item.roomId === nearbyDoor.doorway.roomId);
+        if (place) showPlace(place);
+      }
+      if (dismissedDoorRoomId) {
+        const dismissedDoor = exteriorEntrances.find(item => item.roomId === dismissedDoorRoomId);
+        if (!dismissedDoor || Math.hypot(player.position.x - dismissedDoor.x, player.position.z - dismissedDoor.facadeZ) > 5.2) dismissedDoorRoomId = null;
+      }
+    }
     plazaStars.forEach((star, index) => {
       star.group.position.y = 1.18 + Math.sin(time * 0.0028 + star.phase) * 0.16;
       star.crystal.rotation.y += dt * 1.7;
@@ -1314,7 +1339,13 @@ export function createWorld(canvas) {
       if (entered && mapRouteActive && entered.roomId !== autoWalkTarget?.roomId) {
         player.position.z = previousZ; horizontalVelocity.z = 0; autoWalkTarget = null; autoWalkWaypoints = []; mapRouteActive = false;
         worldMapStatus.textContent = `Route paused at ${rooms.get(entered.roomId)?.name || "a building"}. Choose another destination or continue walking manually.`;
-      } else if (entered) enterRoom(entered.roomId);
+      } else if (entered) {
+        // Never silently teleport through a closed entrance. Stop at the
+        // threshold and show the same Open door & enter prompt as nearby.
+        player.position.z = previousZ; horizontalVelocity.z = 0;
+        const place = landmarks.find(item => item.roomId === entered.roomId);
+        if (place && !activePlace) showPlace(place);
+      }
     }
     if (horizontalVelocity.lengthSq() > 0.025) {
       const targetHeading = Math.atan2(horizontalVelocity.x, horizontalVelocity.z);
