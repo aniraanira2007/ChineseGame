@@ -69,6 +69,7 @@ export function createWorld(canvas) {
     grass: mat("#ffffff"), grassLight: mat("#9abb83"), road: mat("#ffffff"), pavers: mat("#ffffff"), roadLine: mat("#f5d786"),
     wallCream: mat("#f1dfbd"), wallPink: mat("#e9b7a0"), wallMint: mat("#c5ddc4"), wallBlue: mat("#bfd5e5"),
     roofRed: mat("#bd634d"), roofDark: mat("#526f70"), roofOrange: mat("#d88d54"), wood: mat("#8b6246"),
+    door: mat("#b77b4f"), doorPanel: mat("#d39a63"),
     leaf: mat("#5d9668"), leafLight: mat("#81b87a"), trunk: mat("#826047"), stone: mat("#d8d0bd"),
     water: mat("#68b8c7", 0.26), white: mat("#fff6e6"), gold: mat("#e6ad52"),
   };
@@ -100,9 +101,15 @@ export function createWorld(canvas) {
   }
   const outdoorColliders = [];
   function isBlockedOutdoor(x, z) {
-    return outdoorColliders.some(collider => collider.type === "box"
+    const wallBlocked = outdoorColliders.some(collider => collider.type === "box"
       ? Math.abs(x - collider.x) < collider.halfX && Math.abs(z - collider.z) < collider.halfZ
       : (x - collider.x) ** 2 + (z - collider.z) ** 2 < collider.radius ** 2);
+    if (wallBlocked) return true;
+    // A closed door is a real barrier across its doorway. The entry button
+    // opens it before the player is moved into the matching room.
+    return animatedDoorways.some(doorway => !doorway.openRequested
+      && Math.abs(x - doorway.x) < doorway.doorWidth / 2 - 0.12
+      && Math.abs(z - doorway.facadeZ) < 0.42);
   }
   // A distant Shanghai-inspired skyline gives the campus a clear city setting
   // without adding heavy imported assets or blocking the playable streets.
@@ -154,7 +161,7 @@ export function createWorld(canvas) {
       { type: "box", x: x - (doorWidth + sideSegment) / 2, z: facadeZ, halfX: sideSegment / 2, halfZ: wallThickness },
       { type: "box", x: x + (doorWidth + sideSegment) / 2, z: facadeZ, halfX: sideSegment / 2, halfZ: wallThickness },
     );
-    const doorway = { roomId: roomIdByBuilding[label] || null, x, z, frontSign, facadeZ, doorWidth, doors: [] };
+    const doorway = { roomId: roomIdByBuilding[label] || null, x, z, frontSign, facadeZ, doorWidth, doors: [], openRequested: false };
     animatedDoorways.push(doorway);
     if (doorway.roomId) exteriorEntrances.push(doorway);
     const sideWidth = (width - doorWidth) / 2;
@@ -169,11 +176,18 @@ export function createWorld(canvas) {
     for (const side of [-1, 1]) {
       const hinge = new THREE.Group();
       hinge.position.set(x + side * doorWidth / 2, 1.08, facadeZ + frontSign * 0.24);
-      const leaf = new THREE.Mesh(boxGeo, materials.wood);
+      const leaf = new THREE.Mesh(boxGeo, materials.door);
       leaf.scale.set(doorWidth / 2, 2.08, 0.14);
       leaf.position.x = -side * doorWidth / 4;
       leaf.castShadow = true; leaf.receiveShadow = true;
       hinge.add(leaf); scene.add(hinge);
+      const insetPanel = new THREE.Mesh(boxGeo, materials.doorPanel);
+      insetPanel.scale.set(doorWidth * 0.34, 1.34, 0.055);
+      insetPanel.position.set(leaf.position.x, -0.08, frontSign * 0.1);
+      hinge.add(insetPanel);
+      const handle = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), materials.gold);
+      handle.position.set(-side * (doorWidth / 4 - 0.16), -0.05, frontSign * 0.1);
+      hinge.add(handle);
       doorway.doors.push({ hinge, side, openAngle: -side * frontSign * 1.05 });
     }
     block(x, 0.15, facadeZ + frontSign * 0.9, doorWidth + 1.4, 0.3, 1.5, materials.stone, false);
@@ -822,6 +836,7 @@ export function createWorld(canvas) {
   let activePlace = null, activeEmote = null, activeEmoteTime = 0, autoWalkTarget = null, mapRouteActive = false;
   let autoWalkWaypoints = [];
   let insideRoom = null;
+  let pendingRoomEntry = null;
   let sitCameraYaw = 0;
   let running = true;
   const dialog = document.querySelector("#world-interaction");
@@ -893,7 +908,12 @@ export function createWorld(canvas) {
     dialog.querySelector(".interaction-action").addEventListener("click", () => {
       if (isLocked) return;
       const firstVisit = rewardWorldVisit(place.id);
-      if (place.route === "room") { enterRoom(place.roomId); return; }
+      if (place.route === "room") {
+        const doorway = animatedDoorways.find(item => item.roomId === place.roomId);
+        if (doorway) { doorway.openRequested = true; pendingRoomEntry = place.roomId; }
+        else enterRoom(place.roomId);
+        return;
+      }
       if (place.route === "school") { hidePlace(); window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: place.schoolTab, cultureSpot: place.cultureSpot, huntSpot: place.huntId, machineId: place.machineId } })); return; }
       dialog.querySelector(".interaction-action").textContent = firstVisit ? "Discovery saved · +5 XP · +1 coin ✧" : "You’ve explored this spot ✧";
       dialog.querySelector(".interaction-action").disabled = true;
@@ -1203,11 +1223,19 @@ export function createWorld(canvas) {
       group.rotation.z = Math.sin(time * 0.001 + phase) * 0.045;
     });
     animatedDoorways.forEach(doorway => {
-      const nearEntrance = Math.hypot(player.position.x - doorway.x, player.position.z - doorway.facadeZ) < 7.5;
       doorway.doors.forEach(({ hinge, openAngle }) => {
-        hinge.rotation.y = THREE.MathUtils.damp(hinge.rotation.y, nearEntrance ? openAngle : 0, 5.5, dt);
+        hinge.rotation.y = THREE.MathUtils.damp(hinge.rotation.y, doorway.openRequested ? openAngle : 0, 7, dt);
       });
     });
+    if (pendingRoomEntry) {
+      const doorway = animatedDoorways.find(item => item.roomId === pendingRoomEntry);
+      if (doorway?.doors.every(({ hinge, openAngle }) => Math.abs(hinge.rotation.y - openAngle) < 0.12)) {
+        const roomId = pendingRoomEntry;
+        pendingRoomEntry = null;
+        doorway.openRequested = false;
+        enterRoom(roomId);
+      }
+    }
     const forward = THREE.MathUtils.clamp(Number(keys.has("KeyW") || keys.has("ArrowUp") || heldTouch.has("KeyW")) - Number(keys.has("KeyS") || keys.has("ArrowDown") || heldTouch.has("KeyS")) + joystickVector.y, -1, 1);
     const side = THREE.MathUtils.clamp(Number(keys.has("KeyD") || keys.has("ArrowRight") || heldTouch.has("KeyD")) - Number(keys.has("KeyA") || keys.has("ArrowLeft") || heldTouch.has("KeyA")) + joystickVector.x, -1, 1);
     const runningFast = keys.has("ShiftLeft") || keys.has("ShiftRight") || heldTouch.has("ShiftLeft");
