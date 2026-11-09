@@ -108,7 +108,9 @@ export function createWorld(canvas) {
     // A closed door is a real barrier across its doorway. The entry button
     // opens it before the player is moved into the matching room.
     return animatedDoorways.some(doorway => !doorway.openRequested
-      && Math.abs(x - doorway.x) < doorway.doorWidth / 2 - 0.12
+      // Block the avatar's body, not just its center: otherwise the shoulder
+      // clips through a door leaf when walking close to either jamb.
+      && Math.abs(x - doorway.x) < doorway.doorWidth / 2 + 0.42
       && Math.abs(z - doorway.facadeZ) < 0.42);
   }
   // A distant Shanghai-inspired skyline gives the campus a clear city setting
