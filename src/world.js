@@ -174,7 +174,7 @@ export function createWorld(canvas) {
     block(x + doorWidth / 2 + 0.11, 1.15, facadeZ + frontSign * 0.08, 0.22, 2.3, 0.24, materials.wood);
     block(x, 2.32, facadeZ + frontSign * 0.08, doorWidth + 0.44, 0.24, 0.24, materials.gold);
     // Doors begin closed across the opening and swing inward when the player
-    // approaches. Pivot groups keep the panels attached at their outer hinges.
+    // chooses Open door & enter. Pivot groups keep the panels at the jambs.
     for (const side of [-1, 1]) {
       const hinge = new THREE.Group();
       hinge.position.set(x + side * doorWidth / 2, 1.08, facadeZ + frontSign * 0.24);
@@ -910,7 +910,7 @@ export function createWorld(canvas) {
     const action = place.route === "room" ? "Open door & enter" : place.action;
     dialog.innerHTML = `<button class="interaction-close" aria-label="Close">×</button><span class="interaction-icon">${place.icon}</span><p class="eyebrow">${isLocked ? "CAMPUS GOAL" : "YOU FOUND A PLACE"}</p><h2>${escapeHtml(place.name)}</h2><p>${escapeHtml(isLocked ? `Collect ${wordsNeeded} more Chinese words to unlock this location. You have ${wordsCollected} so far.` : detail)}</p><button class="primary-btn interaction-action" ${isLocked ? "disabled" : ""}>${escapeHtml(isLocked ? `Unlock after ${place.requireWords} words` : action)} <span>${isLocked ? "🔒" : "→"}</span></button>`;
     dialog.querySelector(".interaction-close").addEventListener("click", () => {
-      if (place.route === "room") dismissedDoorRoomId = place.roomId;
+      dismissDoorPrompt(place);
       hidePlace();
     });
     dialog.querySelector(".interaction-action").addEventListener("click", () => {
@@ -927,11 +927,18 @@ export function createWorld(canvas) {
       dialog.querySelector(".interaction-action").disabled = true;
     });
   }
+  function dismissDoorPrompt(place) {
+    if (place?.route !== "room") return;
+    dismissedDoorRoomId = place.roomId;
+    if (pendingRoomEntry === place.roomId) pendingRoomEntry = null;
+    const doorway = animatedDoorways.find(item => item.roomId === place.roomId);
+    if (doorway && !insideRoom) doorway.openRequested = false;
+  }
   function hidePlace() { dialog.hidden = true; activePlace = null; }
   function escapeHtml(str) { return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
   function openNearest() {
     if (activePlace) {
-      if (activePlace.route === "room") dismissedDoorRoomId = activePlace.roomId;
+      dismissDoorPrompt(activePlace);
       hidePlace(); return;
     }
     let closest = null, best = 100;
@@ -1222,6 +1229,15 @@ export function createWorld(canvas) {
   function animate(time) {
     if (!running || !visible) return;
     const dt = Math.min((time - previousTime) / 1000 || 0, 0.04); previousTime = time;
+    // Door prompts belong to their doorway. Walking away dismisses the prompt,
+    // cancels a not-yet-finished entry, and lets the door animate shut.
+    if (!insideRoom && activePlace?.route === "room") {
+      const doorway = exteriorEntrances.find(item => item.roomId === activePlace.roomId);
+      if (!doorway || Math.hypot(player.position.x - doorway.x, player.position.z - doorway.facadeZ) > 5.2) {
+        dismissDoorPrompt(activePlace);
+        hidePlace();
+      }
+    }
     if (!insideRoom && !pendingRoomEntry) {
       const nearbyDoor = exteriorEntrances
         .map(doorway => ({ doorway, distance: Math.hypot(player.position.x - doorway.x, player.position.z - doorway.facadeZ) }))
