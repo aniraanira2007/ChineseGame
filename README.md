@@ -95,12 +95,23 @@ This Windows workspace cannot sign, run, archive, or submit an iOS app because t
 - Customize your player name and avatar color. The same profile appears in both modes and is saved in this browser using local storage.
 - The default female avatar is a real skinned anime model with a 106-bone rig and authored idle/run clips. The existing loader shares it across Character Studio, profile preview, and the playable world.
 - Walk uses the supplied run animation at a slower playback rate. Jump and landing remain driven by the existing world physics with simple avatar pose feedback. Wave, sit, dance, and celebrate use procedural poses because the model does not include matching named clips.
-- The Social World labels the room as private solo play; no fake online users are shown.
+- The 3D world is still a solo world; real-time text chat and an opt-in signed-in player list are separate and never fabricate other users.
 - Student cards can be edited and saved locally. Supabase account and cloud sync controls activate when the project URL, public key, and profile SQL are configured.
 
 ## Multiplayer and communication
 
-The local room and its location interaction points are structured separately from the renderer so a shared-room transport can be added later. There is no realtime server configured in this project, so multiplayer, text chat, and proximity voice chat are not active. They will need a hosted room service (or a WebSocket/WebRTC backend), authentication, and moderation/privacy controls before real communication is enabled. Mute, block, and report controls are therefore not shown as if they already worked.
+The social module now has signed-in Supabase Realtime text chat, an opt-in player list, shared avatar movement, local mute/block controls, and a report form. Messages and movement are temporary broadcasts and are not stored. Avatar movement is client-authoritative, so it is a small-room prototype rather than cheat-resistant production multiplayer. Reports are available to the project owner for manual review; there is no automated moderation queue.
+
+WebRTC proximity voice code is present but disabled by default with `VITE_VOICE_ENABLED=false`. Do not enable it for players yet. It needs a secure TURN/signaling setup, privacy review, moderation procedures, and device testing first. When enabled, players must click to request microphone access, opt into presence, and are connected only when their avatars share a room and are within 9 world units. The proximity limit is client-side and is not a safety boundary against modified clients.
+
+To enable the text chat and reports:
+
+1. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` using the existing account setup above.
+2. Run `supabase/worldmates-social.sql` in the Supabase SQL Editor. It limits realtime access to signed-in users and creates a report table with Row Level Security.
+3. Redeploy the website so the configured browser build includes the social module.
+4. Sign in from the player profile. Choose “Show me in the plaza player list” to share your name, avatar, and movement with other opted-in players. Text chat works without opting into the world list.
+
+Reports are saved for the project owner to review in Supabase; the website does not have an automatic moderation team or inbox. Mute and block choices apply only on the player’s device. This implementation has only passed the production build; it has not been connected to the live Supabase project or tested between two real accounts. Do not announce it as live until the SQL migration is applied and multi-device checks pass.
 
 When Supabase is configured, email account sessions, public student cards, and private cloud saves are available. Without those settings, profile and game progress remain saved on the current device.
 

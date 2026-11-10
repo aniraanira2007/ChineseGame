@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { getProfile, rewardWorldVisit, updateProfile } from "./profile.js";
 import { createCharacter } from "./utils/characterLoader.js";
+import { mountSocialRoom } from "./socialRoom.js";
 
 export function createWorld(canvas) {
   const scene = new THREE.Scene();
@@ -838,6 +839,13 @@ export function createWorld(canvas) {
   let activePlace = null, activeEmote = null, activeEmoteTime = 0, autoWalkTarget = null, mapRouteActive = false;
   let autoWalkWaypoints = [];
   let insideRoom = null;
+  const socialRoom = mountSocialRoom(document.querySelector("#social-room"), {
+    scene,
+    getPlayerState: () => ({
+      x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.rotation.y,
+      animation: avatar.animation || "idle", room: insideRoom?.id || "plaza",
+    }),
+  });
   let pendingRoomEntry = null;
   let dismissedDoorRoomId = null;
   let sitCameraYaw = 0;
@@ -1411,6 +1419,8 @@ export function createWorld(canvas) {
     const nextAnimation = !grounded ? "Jump" : landingTime > 0 ? "Land" : activeEmote || (horizontalVelocity.lengthSq() > 0.12 ? (runningFast ? "Run" : "Walk") : "Idle");
     if (avatar.animation !== nextAnimation.toLowerCase()) avatar.setAnimation(nextAnimation);
     avatar.update(dt);
+    socialRoom.update(dt);
+    socialRoom.publish(time);
     renderer.render(scene, camera);
     frame = requestAnimationFrame(animate);
   }
@@ -1419,8 +1429,8 @@ export function createWorld(canvas) {
 
   function setVisible(nextVisible) {
     visible = Boolean(nextVisible);
-    if (!visible) { cancelAnimationFrame(frame); keys.clear(); heldTouch.clear(); releaseJoystick(); }
-    else { previousTime = 0; resize(); frame = requestAnimationFrame(animate); }
+    if (!visible) { cancelAnimationFrame(frame); keys.clear(); heldTouch.clear(); releaseJoystick(); socialRoom.setVisible(false); }
+    else { previousTime = 0; resize(); socialRoom.setVisible(true); frame = requestAnimationFrame(animate); }
   }
 
   function dispose() {
@@ -1429,6 +1439,7 @@ export function createWorld(canvas) {
     window.removeEventListener("blur", onBlur); window.removeEventListener("lantern:profile", onProfile); window.removeEventListener("world:find-food", onFindFood);
     window.removeEventListener("world:sit-seat", onRoomSeatRequest); window.removeEventListener("world:avatar-emote", onAvatarEmote); window.removeEventListener("world:serve-order", onServeOrder);
     window.removeEventListener("world:map-place", onWorldMapPlaceRequest);
+    socialRoom.dispose();
     roomExit?.removeEventListener("click", leaveRoom);
     canvas.removeEventListener("pointerdown", pointerDown); canvas.removeEventListener("pointermove", pointerMove); canvas.removeEventListener("pointerup", pointerUp); canvas.removeEventListener("pointercancel", pointerUp);
     emoteBar.remove();

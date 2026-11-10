@@ -32,6 +32,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_PAYMENTS_ENABLED: ${{ vars.VITE_PAYMENTS_ENABLED }}
+          VITE_VOICE_ENABLED: ${{ vars.VITE_VOICE_ENABLED }}
         run: npm run build
       - name: Prepare Pages artifact
         uses: actions/upload-pages-artifact@v3

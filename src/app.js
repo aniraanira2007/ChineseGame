@@ -5,6 +5,7 @@ import characterData from "./data/characters.json";
 import { mountAccount } from "./account.js";
 import { mountPlayerStats } from "./analytics/playerStats.js";
 import "./analytics/playerStats.css";
+import "./socialRoom.css";
 import "./hsk.css";
 
 (() => {
