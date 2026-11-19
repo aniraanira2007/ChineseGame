@@ -1,7 +1,7 @@
 import vocabulary from "./data/hsk1-vocabulary.json";
 
 const STORAGE_KEY = "little-lantern-player-v1";
-const DEFAULTS = { name: "Little learner", color: "#e878a1", country: "", preferredLanguage: "English", bio: "", interests: [], appearance: { characterId: "sakura-street", outfitId: "teal-traveler", hairColor: "espresso", skinTone: "warm", eyeColor: "green", accessoryId: "signature" }, xp: 0, coins: 0, lessons: 0, studyStreak: 0, currentStudyStreak: 0, bestStudyStreak: 0, lastStudyDate: null, restDayCredits: 1, restDayUsedWeek: null, restDayDate: null, streakRewards: [], achievements: [], wordCollection: [], dailyQuest: { date: null, studiedWords: [], orderComplete: false, claimed: false }, npcRewards: {}, weeklyClaimed: null, classroomEnrollment: null, classroomLessonComplete: false, classroomExamHistory: [], wordHuntFound: [], timedFoodBest: 0, timedFoodRewardDate: null, timedFoodLastScore: null };
+const DEFAULTS = { name: "Little learner", color: "#e878a1", country: "", preferredLanguage: "English", bio: "", interests: [], appearance: { characterId: "sakura-street", outfitId: "teal-traveler", hairColor: "espresso", skinTone: "warm", eyeColor: "green", accessoryId: "signature" }, xp: 0, coins: 0, lessons: 0, studyStreak: 0, currentStudyStreak: 0, bestStudyStreak: 0, lastStudyDate: null, restDayCredits: 1, restDayUsedWeek: null, restDayDate: null, streakRewards: [], achievements: [], wordCollection: [], dailyQuest: { date: null, studiedWords: [], orderComplete: false, claimed: false }, npcRewards: {}, weeklyClaimed: null, classroomEnrollment: null, classroomLessonComplete: false, classroomExamHistory: [], firstSchoolDayStep: 0, firstSchoolDayComplete: false, wordHuntFound: [], timedFoodBest: 0, timedFoodRewardDate: null, timedFoodLastScore: null };
 const localDate = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 const weekKey = value => { const date = new Date(`${value}T12:00:00`); if (Number.isNaN(date.getTime())) return ""; date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return localDate(date); };
 const DAILY_FOOD_WORDS = new Set(["包子", "茶", "鸡蛋", "米饭", "苹果"]);
@@ -24,7 +24,9 @@ function read() {
   const lastStudy = saved.lastStudyDate ? new Date(`${saved.lastStudyDate}T12:00:00`) : null;
   const daysSinceStudy = lastStudy ? Math.floor((new Date(`${localDate()}T12:00:00`) - lastStudy) / 86400000) : Infinity;
   const currentStudyStreak = Number.isFinite(saved.currentStudyStreak) ? saved.currentStudyStreak : daysSinceStudy <= 1 && saved.lastStudyDate ? 1 : 0;
-  return { ...DEFAULTS, ...saved, appearance, currentStudyStreak, classroomEnrollment: saved.classroomEnrollment && typeof saved.classroomEnrollment === "object" ? saved.classroomEnrollment : null, classroomLessonComplete: Boolean(saved.classroomLessonComplete), classroomExamHistory: Array.isArray(saved.classroomExamHistory) ? saved.classroomExamHistory : [], wordHuntFound: Array.isArray(saved.wordHuntFound) ? saved.wordHuntFound : [], timedFoodBest: Number(saved.timedFoodBest) || 0, interests: Array.isArray(saved.interests) ? saved.interests : [], wordCollection: Array.isArray(saved.wordCollection) ? saved.wordCollection : [], streakRewards: Array.isArray(saved.streakRewards) ? saved.streakRewards : [], dailyQuest: { ...DEFAULTS.dailyQuest, ...(saved.dailyQuest || {}), studiedWords: Array.isArray(saved.dailyQuest?.studiedWords) ? saved.dailyQuest.studiedWords : [] }, npcRewards: saved.npcRewards && typeof saved.npcRewards === "object" ? saved.npcRewards : {} };
+  const examHistory = Array.isArray(saved.classroomExamHistory) ? saved.classroomExamHistory : [];
+  const legacyStage = examHistory.some(exam => exam.passed) ? 4 : saved.classroomLessonComplete ? 3 : saved.classroomEnrollment ? 2 : 0;
+  return { ...DEFAULTS, ...saved, appearance, currentStudyStreak, classroomEnrollment: saved.classroomEnrollment && typeof saved.classroomEnrollment === "object" ? saved.classroomEnrollment : null, classroomLessonComplete: Boolean(saved.classroomLessonComplete), classroomExamHistory: examHistory, firstSchoolDayStep: saved.firstSchoolDayComplete ? 5 : Number.isInteger(saved.firstSchoolDayStep) ? Math.max(0, Math.min(5, saved.firstSchoolDayStep)) : legacyStage, firstSchoolDayComplete: Boolean(saved.firstSchoolDayComplete), wordHuntFound: Array.isArray(saved.wordHuntFound) ? saved.wordHuntFound : [], timedFoodBest: Number(saved.timedFoodBest) || 0, interests: Array.isArray(saved.interests) ? saved.interests : [], wordCollection: Array.isArray(saved.wordCollection) ? saved.wordCollection : [], streakRewards: Array.isArray(saved.streakRewards) ? saved.streakRewards : [], dailyQuest: { ...DEFAULTS.dailyQuest, ...(saved.dailyQuest || {}), studiedWords: Array.isArray(saved.dailyQuest?.studiedWords) ? saved.dailyQuest.studiedWords : [] }, npcRewards: saved.npcRewards && typeof saved.npcRewards === "object" ? saved.npcRewards : {} };
   } catch { return { ...DEFAULTS }; }
 }
 
@@ -62,6 +64,18 @@ function render() {
   const badge = document.querySelector("[data-first-achievement]");
   if (badge && profile.achievements.includes("first-answer")) badge.textContent = "You answered your first Chinese school question. Lovely work!";
   document.querySelectorAll("[data-food-cosmetic]").forEach(el => { el.hidden = !profile.achievements.includes("food-street-pin"); });
+  const mission = profile.firstSchoolDayComplete ? { progress: "5/5", title: "First School Day complete!", detail: "School Star badge saved · +35 XP · +20 coins", action: "Replay the class", step: "class" } : [
+    { progress: "0/5", title: "Walk to Chinese School", detail: "Follow the road and enter through the school door.", action: "Find the school", step: "school" },
+    { progress: "1/5", title: "Register for Chinese class", detail: "Teacher Lin will prepare your first lesson.", action: "Open the classroom", step: "class" },
+    { progress: "2/5", title: "Study your 8-word list", detail: "Listen to the words, then finish the lesson.", action: "Continue class", step: "class" },
+    { progress: "3/5", title: "Pass your class exam", detail: "Get at least 70% to move on to lunch.", action: "Take the exam", step: "class" },
+    { progress: "4/5", title: "Order lunch in Chinese", detail: "Visit Shanghai Restaurant and order a meal.", action: "Find the restaurant", step: "restaurant" }
+  ][profile.firstSchoolDayStep] || { progress: "0/5", title: "Walk to Chinese School", detail: "Follow the road and enter through the school door.", action: "Find the school", step: "school" };
+  document.querySelectorAll("[data-first-day-progress]").forEach(el => { el.textContent = mission.progress; });
+  document.querySelectorAll("[data-first-day-title]").forEach(el => { el.textContent = mission.title; });
+  document.querySelectorAll("[data-first-day-detail]").forEach(el => { el.textContent = mission.detail; });
+  document.querySelectorAll("[data-first-day-action]").forEach(el => { el.textContent = mission.action; el.dataset.firstDayAction = mission.step; });
+  document.querySelectorAll("[data-first-day-card]").forEach(el => el.classList.toggle("is-complete", profile.firstSchoolDayComplete));
 }
 
 export function getProfile() { return { ...profile, level: levelFor(profile.xp), title: titleFor(levelFor(profile.xp)) }; }
@@ -165,6 +179,24 @@ export function rewardWorldVisit(location) {
 export function updateProfile(patch) {
   profile = { ...profile, ...patch };
   save();
+}
+
+export function advanceFirstSchoolDay(expectedStep) {
+  if (profile.firstSchoolDayComplete || profile.firstSchoolDayStep !== expectedStep) return false;
+  profile.firstSchoolDayStep = expectedStep + 1;
+  save();
+  return true;
+}
+
+export function completeFirstSchoolDay() {
+  if (profile.firstSchoolDayComplete || profile.firstSchoolDayStep !== 4) return false;
+  profile.firstSchoolDayComplete = true;
+  profile.firstSchoolDayStep = 5;
+  profile.xp += 35;
+  profile.coins += 20;
+  if (!profile.achievements.includes("first-school-day")) profile.achievements.push("first-school-day");
+  save();
+  return true;
 }
 
 export function replaceProfile(nextProfile = {}) {

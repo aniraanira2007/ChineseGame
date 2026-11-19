@@ -1,6 +1,6 @@
 import { questions } from "./questions.js";
 import vocabulary from "./data/hsk1-vocabulary.json";
-import { addLearnedWord, completeDailyFoodOrder, getProfile, recordDailyFoodWord, rewardStudyAnswer, updateProfile, useRestDay } from "./profile.js";
+import { addLearnedWord, advanceFirstSchoolDay, completeFirstSchoolDay, completeDailyFoodOrder, getProfile, recordDailyFoodWord, rewardStudyAnswer, updateProfile, useRestDay } from "./profile.js";
 
 const words = new Map(vocabulary.words.map(word => [word.hanzi, word]));
 const dateKey = (date = new Date()) => date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
@@ -130,6 +130,7 @@ export function mountSchool(root) {
       if (studentName.length < 2) { render("classroom", { kind: "error", text: "Please enter a student name with at least 2 characters." }); return; }
       const fresh = getProfile();
       updateProfile({ name: studentName, classroomEnrollment: { studentName, course: "Beginner Mandarin · Class 1", registeredAt: fresh.classroomEnrollment?.registeredAt || new Date().toISOString() } });
+      advanceFirstSchoolDay(1);
       render("classroom", { kind: "success", text: "You’re registered for Beginner Mandarin · Class 1. Your class card is saved with your player profile." });
     });
     root.querySelector("[data-class-lesson-complete]")?.addEventListener("click", () => {
@@ -137,6 +138,7 @@ export function mountSchool(root) {
       if (fresh.classroomLessonComplete) return render("classroom", { kind: "success", text: "Lesson already completed. You can take the exam or review the list again." });
       CLASS_WORDS.forEach(addWord);
       updateProfile({ classroomLessonComplete: true, lessons: fresh.lessons + 1, xp: fresh.xp + 20, coins: fresh.coins + 5 });
+      advanceFirstSchoolDay(2);
       render("classroom", { kind: "success", text: "Lesson complete! The 8 words were added to your word book · +20 XP · +5 coins." });
     });
     root.querySelectorAll("[data-class-speak]").forEach(button => button.addEventListener("click", () => speak(button.dataset.classSpeak)));
@@ -153,6 +155,7 @@ export function mountSchool(root) {
       const fresh = getProfile(), score = Math.round(classExamCorrect / CLASS_EXAM.length * 100), exam = { date: today(), score, correct: classExamCorrect, total: CLASS_EXAM.length, passed: score >= 70 };
       const classroomExamHistory = [...(fresh.classroomExamHistory || []), exam].slice(-20);
       updateProfile({ classroomExamHistory, xp: fresh.xp + 10, coins: fresh.coins + 3, achievements: exam.passed && !fresh.achievements.includes("class-pass-1") ? [...fresh.achievements, "class-pass-1"] : fresh.achievements });
+      if (exam.passed) advanceFirstSchoolDay(3);
       classExamAnswered = false; classExamActive = false;
       render("classroom", { kind: score >= 70 ? "success" : "info", text: "Exam saved: " + classExamCorrect + "/" + CLASS_EXAM.length + " correct · " + score + "%. " + (score >= 70 ? "You passed this class exam!" : "Review the lesson list and try again.") + " · +10 XP · +3 coins." });
     });
@@ -277,7 +280,8 @@ export function mountSchool(root) {
       addLearnedWord({ hanzi: dish.hanzi, pinyin: dish.pinyin, meaning: dish.meaning, learnedAt: today() });
       updateProfile({ socialMealRewards: { ...claimed, [key]: true }, xp: fresh.xp + (firstOrderToday ? 5 : 0), coins: fresh.coins + (firstOrderToday ? 2 : 0) });
       window.dispatchEvent(new CustomEvent("world:serve-order", { detail: { roomId, dish: dish.hanzi } }));
-      render(tab, { kind: "success", text: `你点了${dish.hanzi}！ ${dish.pinyin} means “${dish.meaning}”. ${isCoffee ? "The barista is preparing it." : "The waitress is walking over with your order."} ${firstOrderToday ? "+5 XP · +2 coins." : "Daily order reward already collected."}` });
+      const schoolDayComplete = !isCoffee && completeFirstSchoolDay();
+      render(tab, { kind: "success", text: `你点了${dish.hanzi}！ ${dish.pinyin} means “${dish.meaning}”. ${isCoffee ? "The barista is preparing it." : "The waitress is walking over with your order."} ${firstOrderToday ? "+5 XP · +2 coins." : "Daily order reward already collected."}${schoolDayComplete ? " First School Day complete · +35 XP · +20 coins · School Star badge saved!" : ""}` });
     });
     root.querySelector("[data-math-answers]")?.addEventListener("click", event => {
       const button = event.target.closest("[data-math-answer]"); if (!button || mathAnswered) return;
@@ -332,6 +336,13 @@ export function mountSchool(root) {
     if (event.target === root) close();
   });
   window.addEventListener("lantern:open-school", event => { foodNpcStep = 0; activeCultureSpot = event.detail?.cultureSpot || activeCultureSpot; gymMachine = event.detail?.machineId || gymMachine; open(event.detail?.tab || "hub"); if (event.detail?.huntSpot) resolveWordHuntSpot(event.detail.huntSpot); });
+  window.addEventListener("world:room-entered", event => {
+    if (event.detail?.roomId !== "classroom") return;
+    const before = getProfile();
+    if (before.firstSchoolDayStep === 0) advanceFirstSchoolDay(0);
+    const current = getProfile();
+    if (current.firstSchoolDayStep === 1 && !current.classroomEnrollment) open("classroom");
+  });
   window.addEventListener("lantern:school-course-ready", () => {
     const host = root.querySelector("#school-course-host"); if (!host) return;
     const course = document.querySelector("#hsk-course"), practice = document.querySelector("#picture-practice");

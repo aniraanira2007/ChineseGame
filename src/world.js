@@ -170,7 +170,11 @@ export function createWorld(canvas) {
     const sideWidth = (width - doorWidth) / 2;
     block(x - (doorWidth + sideWidth) / 2, height / 2, facadeZ, sideWidth, height, 0.3, wall);
     block(x + (doorWidth + sideWidth) / 2, height / 2, facadeZ, sideWidth, height, 0.3, wall);
-    block(x, height - 0.62, facadeZ, doorWidth, 1.24, 0.3, wall);
+    // Fill the entire facade above the actual door opening. The old header
+    // was placed near the roof, leaving an exposed strip of interior above
+    // the door that looked like a missing wall panel.
+    const doorwayTop = 2.44;
+    if (height > doorwayTop) block(x, (height + doorwayTop) / 2, facadeZ, doorWidth, height - doorwayTop, 0.3, wall);
     block(x - doorWidth / 2 - 0.11, 1.15, facadeZ + frontSign * 0.08, 0.22, 2.3, 0.24, materials.wood);
     block(x + doorWidth / 2 + 0.11, 1.15, facadeZ + frontSign * 0.08, 0.22, 2.3, 0.24, materials.wood);
     block(x, 2.32, facadeZ + frontSign * 0.08, doorWidth + 0.44, 0.24, 0.24, materials.gold);
@@ -884,6 +888,7 @@ export function createWorld(canvas) {
     yaw = 0; pitch = 0.12; player.rotation.y = 0; velocityY = 0; grounded = true; activeEmote = null;
     roomStatus.innerHTML = `<i></i> INSIDE ${escapeHtml(room.name.toUpperCase())}`;
     if (findSchool) findSchool.hidden = true;
+    window.dispatchEvent(new CustomEvent("world:room-entered", { detail: { roomId: id } }));
     const sitButton = emoteBar.querySelector('[data-world-emote="Sit"]');
     if (sitButton) { sitButton.textContent = "Sit"; sitButton.disabled = room.sitSpots.length === 0; sitButton.title = room.sitSpots.length ? "Sit at a desk; press again to stand" : "No seat in this room"; }
     hidePlace();
@@ -910,13 +915,15 @@ export function createWorld(canvas) {
 
   function showPlace(place) {
     activePlace = place;
-    const wordsCollected = getProfile().wordCollection?.length || 0;
+    const visitorProfile = getProfile();
+    const wordsCollected = visitorProfile.wordCollection?.length || 0;
     const wordsNeeded = Math.max(0, (place.requireWords || 0) - wordsCollected);
-    const isLocked = wordsNeeded > 0;
+    const libraryNeedsSchoolDay = place.id === "bookshop" && !visitorProfile.achievements.includes("first-school-day");
+    const isLocked = wordsNeeded > 0 || libraryNeedsSchoolDay;
     dialog.hidden = false;
-    const detail = place.route === "room" ? `You’re at the entrance to ${place.name}. Open the door to go inside.` : place.detail;
+    const detail = libraryNeedsSchoolDay ? "Finish your first school day: register, study, pass the exam, and order lunch to unlock the Campus Library." : place.route === "room" ? `You’re at the entrance to ${place.name}. Open the door to go inside.` : place.detail;
     const action = place.route === "room" ? "Open door & enter" : place.action;
-    dialog.innerHTML = `<button class="interaction-close" aria-label="Close">×</button><span class="interaction-icon">${place.icon}</span><p class="eyebrow">${isLocked ? "CAMPUS GOAL" : "YOU FOUND A PLACE"}</p><h2>${escapeHtml(place.name)}</h2><p>${escapeHtml(isLocked ? `Collect ${wordsNeeded} more Chinese words to unlock this location. You have ${wordsCollected} so far.` : detail)}</p><button class="primary-btn interaction-action" ${isLocked ? "disabled" : ""}>${escapeHtml(isLocked ? `Unlock after ${place.requireWords} words` : action)} <span>${isLocked ? "🔒" : "→"}</span></button>`;
+    dialog.innerHTML = `<button class="interaction-close" aria-label="Close">×</button><span class="interaction-icon">${place.icon}</span><p class="eyebrow">${isLocked ? "CAMPUS GOAL" : "YOU FOUND A PLACE"}</p><h2>${escapeHtml(place.name)}</h2><p>${escapeHtml(libraryNeedsSchoolDay ? detail : isLocked ? `Collect ${wordsNeeded} more Chinese words to unlock this location. You have ${wordsCollected} so far.` : detail)}</p><button class="primary-btn interaction-action" ${isLocked ? "disabled" : ""}>${escapeHtml(isLocked ? libraryNeedsSchoolDay ? "Complete First School Day" : `Unlock after ${place.requireWords} words` : action)} <span>${isLocked ? "🔒" : "→"}</span></button>`;
     dialog.querySelector(".interaction-close").addEventListener("click", () => {
       dismissDoorPrompt(place);
       hidePlace();
@@ -960,6 +967,12 @@ export function createWorld(canvas) {
   // A guided walking route helps new players find the school on a small phone screen.
   const findSchool = document.querySelector("[data-find-school]");
   const findCulture = document.querySelector("[data-find-culture]");
+  document.querySelector("[data-first-day-card]")?.addEventListener("click", event => {
+    const action = event.target.closest("[data-first-day-action]")?.dataset.firstDayAction;
+    if (action === "school") { findSchool?.click(); return; }
+    if (action === "class") { window.dispatchEvent(new CustomEvent("lantern:open-school", { detail: { tab: "classroom" } })); return; }
+    if (action === "restaurant") window.dispatchEvent(new CustomEvent("world:map-place", { detail: { id: "restaurant" } }));
+  });
   findSchool?.addEventListener("click", () => {
     mapRouteActive = false;
     if (insideRoom) leaveRoom();
