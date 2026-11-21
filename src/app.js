@@ -1,4 +1,4 @@
-import { addLearnedWord, recordDailyFoodWord, rewardStudyAnswer, updateProfile } from "./profile.js";
+import { addLearnedWord, getProfile, recordDailyFoodWord, rewardStudyAnswer, updateProfile } from "./profile.js";
 import { questions } from "./questions.js";
 import vocabulary from "./data/hsk1-vocabulary.json";
 import characterData from "./data/characters.json";
@@ -27,6 +27,12 @@ import "./hsk.css";
   let pendingSchoolTab = null;
   let clubPending = false;
   let clubReady = false;
+  let welcomeFlowRoot = null;
+  let welcomeFlowStep = "setup";
+  let welcomeFlowReplay = false;
+  let welcomeAvatarId = "sakura-street";
+  let welcomeDraftName = "";
+  let welcomePreview = null;
 
   function mountHskCourse() {
     if (!hskCourseReady && !hskCoursePending) {
@@ -359,10 +365,112 @@ import "./hsk.css";
     return studioPromise;
   }
 
+  function welcomeAppearance(characterId) {
+    const defaults = {
+      "sakura-street": { outfitId: "petal-pop", hairColor: "rose", eyeColor: "ocean" },
+      "kai-blue": { outfitId: "skyline-bomber", hairColor: "midnight", eyeColor: "ocean" },
+      "violet-atelier": { outfitId: "maid-pink", hairColor: "espresso", eyeColor: "green" },
+      "juniper-tech": { outfitId: "pumpkin-classic", hairColor: "espresso", eyeColor: "amber" },
+    };
+    return { characterId, ...(defaults[characterId] || defaults["sakura-street"]), skinTone: "warm", accessoryId: "signature" };
+  }
+
+  function ensureWelcomeFlow() {
+    if (welcomeFlowRoot) return welcomeFlowRoot;
+    welcomeFlowRoot = document.createElement("div");
+    welcomeFlowRoot.id = "welcome-flow";
+    welcomeFlowRoot.className = "welcome-flow-backdrop";
+    welcomeFlowRoot.hidden = true;
+    document.body.append(welcomeFlowRoot);
+    welcomeFlowRoot.addEventListener("click", event => {
+      const choice = event.target.closest("[data-welcome-avatar]");
+      if (choice) { welcomeDraftName = welcomeFlowRoot.querySelector("#welcome-player-name")?.value || welcomeDraftName; welcomeAvatarId = choice.dataset.welcomeAvatar; renderWelcomeFlow(); return; }
+      if (event.target.closest("[data-welcome-skip]")) {
+        if (!welcomeFlowReplay) updateProfile({ onboardingComplete: true, worldTutorialComplete: true });
+        welcomeFlowRoot.hidden = true;
+        welcomePreview?.setVisible(false);
+        return;
+      }
+      if (event.target.closest("[data-welcome-back]")) { welcomeFlowStep = welcomeFlowStep === "explore" ? "controls" : "setup"; renderWelcomeFlow(); return; }
+      if (event.target.closest("[data-welcome-next]")) {
+        if (welcomeFlowStep === "setup") {
+          const nameInput = welcomeFlowRoot.querySelector("#welcome-player-name");
+          const name = String(welcomeDraftName || nameInput?.value || "").trim().slice(0, 18);
+          const status = welcomeFlowRoot.querySelector("[data-welcome-status]");
+          if (name.length < 2) { if (status) status.textContent = "Enter a name with at least 2 letters, or choose Skip for now."; nameInput?.focus(); return; }
+          const character = characterData.freeCharacters.find(item => item.id === welcomeAvatarId) || characterData.freeCharacters[0];
+          updateProfile({ name, color: character.palette.top, appearance: welcomeAppearance(character.id) });
+          welcomeFlowStep = "controls";
+        } else if (welcomeFlowStep === "controls") welcomeFlowStep = "explore";
+        else {
+          updateProfile({ onboardingComplete: true, worldTutorialComplete: true });
+          welcomeFlowRoot.hidden = true;
+          welcomePreview?.setVisible(false);
+          if (!welcomeFlowReplay) { history.replaceState(null, "", "#world"); navigate("world"); }
+          welcomeFlowReplay = false;
+          return;
+        }
+        renderWelcomeFlow();
+      }
+    });
+    welcomeFlowRoot.addEventListener("input", event => {
+      if (event.target.id === "welcome-player-name") welcomeDraftName = event.target.value;
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !welcomeFlowRoot.hidden) {
+        if (!welcomeFlowReplay) updateProfile({ onboardingComplete: true, worldTutorialComplete: true });
+        welcomeFlowRoot.hidden = true;
+        welcomePreview?.setVisible(false);
+      }
+    });
+    return welcomeFlowRoot;
+  }
+
+  function renderWelcomeFlow() {
+    const root = ensureWelcomeFlow(), profile = getProfile();
+    welcomePreview?.dispose(); welcomePreview = null;
+    const steps = { setup: 1, controls: 2, explore: 3 };
+    const step = steps[welcomeFlowStep] || 1;
+    const names = { "sakura-street": "Mira", "kai-blue": "Kai", "violet-atelier": "Maid", "juniper-tech": "Jack" };
+    const content = welcomeFlowStep === "setup" ? `<p class="welcome-flow-kicker">YOUR WORLDMATES JOURNEY</p><h2>First, create your explorer</h2><p class="welcome-flow-copy">Pick a name and a starter avatar. You can change your look later in Character Studio.</p><label class="welcome-name-label" for="welcome-player-name">Player name</label><input id="welcome-player-name" maxlength="18" minlength="2" autocomplete="nickname" placeholder="At least 2 letters" value="${escapeHtml(welcomeDraftName)}" /><div class="welcome-avatar-layout"><div><p class="welcome-avatar-label">Choose your avatar</p><div class="welcome-avatar-grid">${characterData.freeCharacters.map(character => `<button type="button" class="welcome-avatar-choice ${character.id === welcomeAvatarId ? "selected" : ""}" data-welcome-avatar="${escapeHtml(character.id)}" style="--avatar-hair:${escapeHtml(character.palette.hair)};--avatar-clothes:${escapeHtml(character.palette.top)}"><span class="welcome-avatar-art" aria-hidden="true"><i></i></span><b>${names[character.id] || escapeHtml(character.name)}</b><small>${escapeHtml(character.presentation)} · free</small></button>`).join("")}</div></div><div class="welcome-avatar-preview"><canvas id="welcome-avatar-canvas" aria-label="Selected 3D avatar preview"></canvas><span id="welcome-avatar-loading" role="status">Loading your 3D avatar…</span></div></div><p class="welcome-flow-status" data-welcome-status role="status"></p><button class="welcome-flow-primary" data-welcome-next>Save and learn how to play <span>→</span></button>` : welcomeFlowStep === "controls" ? `<p class="welcome-flow-kicker">QUICK GUIDE · ${step}/3</p><h2>Move around the world</h2><p class="welcome-flow-copy">On a computer, use <b>W A S D</b> to walk, <b>Shift</b> to run, and <b>Space</b> to jump. On a phone, drag the left joystick; drag the world to look around.</p><div class="welcome-tip-card"><span>🎮</span><b>Easy to take over</b><small>Use the map or school quest button to get a walking route. Touch the joystick any time to stop auto-walking.</small></div><button class="welcome-flow-back" data-welcome-back>← Back to avatar</button><button class="welcome-flow-primary" data-welcome-next>Next: explore and interact <span>→</span></button>` : `<p class="welcome-flow-kicker">QUICK GUIDE · ${step}/3</p><h2>Explore, learn, and earn</h2><p class="welcome-flow-copy">Walk near a glowing place and tap <b>Explore</b> (or press <b>E</b>). At a house, choose <b>Open door &amp; enter</b>.</p><div class="welcome-tip-card"><span>🎒</span><b>Your first school day</b><small>Follow the mission card: register for class, study 8 words, pass the exam, then order lunch in Chinese. Earn XP, coins, a badge, and the Campus Library.</small></div><button class="welcome-flow-back" data-welcome-back>← Back to controls</button><button class="welcome-flow-primary" data-welcome-next>${welcomeFlowReplay ? "Done" : "Enter Worldmates"} <span>→</span></button>`;
+    root.innerHTML = `<section class="welcome-flow-dialog" role="dialog" aria-modal="true" aria-labelledby="welcome-flow-title"><button class="welcome-flow-skip" type="button" data-welcome-skip>${welcomeFlowReplay ? "Close" : "Skip"}</button><div class="welcome-flow-progress" aria-label="Step ${step} of 3">${[1, 2, 3].map(value => `<i class="${value <= step ? "active" : ""}"></i>`).join("")}</div><span class="welcome-flow-mark">友</span><h1 class="welcome-flow-title" id="welcome-flow-title">Welcome to Worldmates</h1>${content}</section>`;
+    root.hidden = false;
+    if (welcomeFlowStep === "setup") {
+      const canvas = root.querySelector("#welcome-avatar-canvas"), loading = root.querySelector("#welcome-avatar-loading"), characterId = welcomeAvatarId;
+      import("./components/Character/characterPreview.js").then(({ createCharacterPreview }) => {
+        if (!canvas.isConnected || welcomeAvatarId !== characterId || welcomeFlowStep !== "setup") return;
+        welcomePreview = createCharacterPreview(canvas, { characterId, appearance: welcomeAppearance(characterId), cameraDistance: 4.3, onStatus: result => {
+          if (!loading?.isConnected) return;
+          loading.textContent = result.state === "ready" ? `${names[characterId] || "Avatar"} is ready` : result.state === "error" ? "Preview unavailable; your avatar will still load in the world." : `Loading ${names[characterId] || "avatar"}…`;
+          loading.classList.toggle("is-ready", result.state === "ready");
+        } });
+      }).catch(() => { if (loading?.isConnected) loading.textContent = "Preview unavailable; your avatar will still load in the world."; });
+    }
+  }
+
+  function startWelcomeFlow(step = "setup", replay = false) {
+    welcomeFlowStep = step; welcomeFlowReplay = replay;
+    const profile = getProfile();
+    welcomeAvatarId = profile.appearance?.characterId || "sakura-street";
+    welcomeDraftName = profile.name === "Little learner" ? "" : profile.name;
+    renderWelcomeFlow();
+  }
+
+  function maybeStartWelcomeFlow() {
+    const profile = getProfile();
+    const freshPlayer = profile.name === "Little learner" && profile.xp === 0 && profile.lessons === 0 && !profile.classroomEnrollment;
+    if (!profile.onboardingComplete && freshPlayer) startWelcomeFlow("setup", false);
+  }
+
+  document.addEventListener("click", event => {
+    if (event.target.closest("[data-tutorial-replay]")) startWelcomeFlow("controls", true);
+  });
+
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
       .catch(error => console.warn("Little Lantern offline support could not start.", error));
   }
 
   navigate(location.hash.slice(1) || "home");
+  maybeStartWelcomeFlow();
 })();

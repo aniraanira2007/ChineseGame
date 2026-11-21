@@ -385,7 +385,7 @@ function hub(profile, quest, feedback) {
 }
 
 function badgeCollection(profile) {
-  const labels = { "word-hunt-complete": ["🏮", "Plaza Word Hunter"], "timed-food-street": ["🥡", "Quick Order Champion"], "npc-quest:greeting": ["👋", "Friendly Greeting"], "npc-quest:directions": ["🧭", "Helpful Guide"], "npc-quest:order": ["🥟", "Food Street Regular"], "food-street-pin": ["🍜", "Food Street Quest"], "class-pass-1": ["🎓", "Class Exam Pass"] };
+  const labels = { "word-hunt-complete": ["🏮", "Plaza Word Hunter"], "timed-food-street": ["🥡", "Quick Order Champion"], "npc-quest:greeting": ["👋", "Friendly Greeting"], "npc-quest:directions": ["🧭", "Helpful Guide"], "npc-quest:order": ["🥟", "Food Street Regular"], "food-street-pin": ["🍜", "Food Street Quest"], "class-pass-1": ["🎓", "Class Exam Pass"], "first-school-day": ["⭐", "First School Day"] };
   const earned = (profile.achievements || []).filter(id => labels[id]);
   return '<section class="school-campus-note school-badges"><b>🏅 Your Worldmates badges</b>' + (earned.length ? '<div>' + earned.map(id => '<span>' + labels[id][0] + ' ' + safe(labels[id][1]) + '</span>').join("") + '</div>' : '<span>Finish a plaza activity or class exam to earn your first badge.</span>') + '</section>';
 }

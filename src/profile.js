@@ -1,7 +1,7 @@
 import vocabulary from "./data/hsk1-vocabulary.json";
 
 const STORAGE_KEY = "little-lantern-player-v1";
-const DEFAULTS = { name: "Little learner", color: "#e878a1", country: "", preferredLanguage: "English", bio: "", interests: [], appearance: { characterId: "sakura-street", outfitId: "teal-traveler", hairColor: "espresso", skinTone: "warm", eyeColor: "green", accessoryId: "signature" }, xp: 0, coins: 0, lessons: 0, studyStreak: 0, currentStudyStreak: 0, bestStudyStreak: 0, lastStudyDate: null, restDayCredits: 1, restDayUsedWeek: null, restDayDate: null, streakRewards: [], achievements: [], wordCollection: [], dailyQuest: { date: null, studiedWords: [], orderComplete: false, claimed: false }, npcRewards: {}, weeklyClaimed: null, classroomEnrollment: null, classroomLessonComplete: false, classroomExamHistory: [], firstSchoolDayStep: 0, firstSchoolDayComplete: false, wordHuntFound: [], timedFoodBest: 0, timedFoodRewardDate: null, timedFoodLastScore: null };
+const DEFAULTS = { name: "Little learner", color: "#e878a1", country: "", preferredLanguage: "English", bio: "", interests: [], appearance: { characterId: "sakura-street", outfitId: "teal-traveler", hairColor: "espresso", skinTone: "warm", eyeColor: "green", accessoryId: "signature" }, onboardingComplete: false, worldTutorialComplete: false, xp: 0, coins: 0, lessons: 0, studyStreak: 0, currentStudyStreak: 0, bestStudyStreak: 0, lastStudyDate: null, restDayCredits: 1, restDayUsedWeek: null, restDayDate: null, streakRewards: [], achievements: [], wordCollection: [], dailyQuest: { date: null, studiedWords: [], orderComplete: false, claimed: false }, npcRewards: {}, weeklyClaimed: null, classroomEnrollment: null, classroomLessonComplete: false, classroomExamHistory: [], firstSchoolDayStep: 0, firstSchoolDayComplete: false, wordHuntFound: [], timedFoodBest: 0, timedFoodRewardDate: null, timedFoodLastScore: null };
 const localDate = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 const weekKey = value => { const date = new Date(`${value}T12:00:00`); if (Number.isNaN(date.getTime())) return ""; date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return localDate(date); };
 const DAILY_FOOD_WORDS = new Set(["包子", "茶", "鸡蛋", "米饭", "苹果"]);
@@ -11,16 +11,6 @@ function read() {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
   const saved = parsed && typeof parsed === "object" ? parsed : {};
   const appearance = { ...DEFAULTS.appearance, ...(saved.appearance || {}) };
-  // Move the former default avatar to its new reference outfit while retaining
-  // any player's other saved appearance choices.
-  if (appearance.characterId === "sakura-street") {
-    appearance.outfitId = "teal-traveler";
-    if (appearance.hairColor === "rose") appearance.hairColor = "espresso";
-    if (appearance.eyeColor === "ocean") appearance.eyeColor = "green";
-    if (saved.appearance?.outfitId !== appearance.outfitId || saved.appearance?.hairColor !== appearance.hairColor || saved.appearance?.eyeColor !== appearance.eyeColor) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...saved, appearance })); } catch { /* Continue with the in-memory migration. */ }
-    }
-  }
   const lastStudy = saved.lastStudyDate ? new Date(`${saved.lastStudyDate}T12:00:00`) : null;
   const daysSinceStudy = lastStudy ? Math.floor((new Date(`${localDate()}T12:00:00`) - lastStudy) / 86400000) : Infinity;
   const currentStudyStreak = Number.isFinite(saved.currentStudyStreak) ? saved.currentStudyStreak : daysSinceStudy <= 1 && saved.lastStudyDate ? 1 : 0;
@@ -74,6 +64,7 @@ function render() {
   document.querySelectorAll("[data-first-day-progress]").forEach(el => { el.textContent = mission.progress; });
   document.querySelectorAll("[data-first-day-title]").forEach(el => { el.textContent = mission.title; });
   document.querySelectorAll("[data-first-day-detail]").forEach(el => { el.textContent = mission.detail; });
+  document.querySelectorAll("[data-first-day-reward]").forEach(el => { el.textContent = profile.firstSchoolDayComplete ? "Reward collected · Campus Library open" : "Finish for +35 XP · +20 coins · Campus Library"; });
   document.querySelectorAll("[data-first-day-action]").forEach(el => { el.textContent = mission.action; el.dataset.firstDayAction = mission.step; });
   document.querySelectorAll("[data-first-day-card]").forEach(el => el.classList.toggle("is-complete", profile.firstSchoolDayComplete));
 }

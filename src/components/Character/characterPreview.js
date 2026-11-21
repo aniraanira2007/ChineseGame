@@ -3,11 +3,11 @@ import { createCharacter } from "../../utils/characterLoader.js";
 import { getProfile } from "../../profile.js";
 
 /** Lightweight reusable GLB preview scene for the studio and player profile. */
-export function createCharacterPreview(canvas, { characterId, appearance, onStatus = () => {} } = {}) {
+export function createCharacterPreview(canvas, { characterId, appearance, onStatus = () => {}, cameraDistance = 7.2 } = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#efe8df");
   const camera = new THREE.PerspectiveCamera(31, 1, 0.1, 30);
-  camera.position.set(0, 1.95, 7.2);
+  camera.position.set(0, 1.95, cameraDistance);
   camera.lookAt(0, 1.68, 0);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.4));
