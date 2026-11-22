@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="./school.css" />
     <link rel="stylesheet" href="./engagement.css" />
     <link rel="stylesheet" href="./club.css" />
+    <link rel="stylesheet" href="./exam.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -37,6 +38,7 @@
           <a class="nav-link" href="#world" data-route="world"><span class="nav-icon">◉</span>Social World<span class="nav-pill">PLAY</span></a>
           <a class="nav-link" href="#character" data-route="character"><span class="nav-icon">✧</span>Character Studio</a>
           <a class="nav-link" href="#club" data-route="club"><span class="nav-icon">✦</span>Club & Outfit Shop</a>
+          <a class="nav-link" href="#exam" data-route="exam"><span class="nav-icon">✎</span>Exam Center</a>
         </nav>
         <div class="sidebar-bottom">
           <div class="side-note"><span class="note-spark">✦</span><p><b>Small steps,</b><br />big discoveries.</p><span class="note-character">灯</span></div>
@@ -59,6 +61,7 @@
           <div class="mode-grid">
             <article class="mode-card study-card"><div class="card-topline"><span class="card-tag study-tag"><span>学</span> START SMALL · GROW DAILY</span><span class="coming-label">300 WORDS</span></div><div class="card-illustration study-illustration"><span>你好</span><i>你好</i><b>你 · 我 · 友</b></div><h3>Your first Chinese quest</h3><p>Learn five useful food words, then practise ordering with Lin at Shanghai Food Street. Your progress and rewards save to your player profile.</p><button class="text-btn" data-open-school="foodquest">Begin today’s quest <span>→</span></button><div class="card-decoration study-decoration">学</div></article>
             <article class="mode-card world-card"><div class="card-topline"><span class="card-tag world-tag"><span>✦</span> LEARN WHILE YOU EXPLORE</span><span class="coming-label">PLAY NOW</span></div><div class="card-illustration world-illustration"><div class="world-sun"></div><div class="world-cloud cloud-left"></div><div class="world-cloud cloud-right"></div><div class="world-hill"></div><div class="world-house">⌂</div><span class="world-flower flower-one">✿</span><span class="world-flower flower-two">✽</span></div><h3>Worldmates Social World</h3><p>Explore a school-inspired world, practice languages, and discover Chinese culture and everyday life.</p><button class="text-btn" data-route="world" >Enter the world <span>→</span></button><div class="card-decoration world-decoration">游</div></article>
+            <article class="mode-card exam-home-card"><div class="card-topline"><span class="card-tag"><span>筆</span> EXAM PRACTICE</span><span class="coming-label">A1–C2</span></div><div class="exam-home-art" aria-hidden="true"><span>听</span><span>读</span><span>写</span><span>说</span></div><h3>Chinese Exam Center</h3><p>Register for a practice level, try four skills, and keep a printable score record on your player profile.</p><button class="text-btn" data-route="exam">Open Exam Center</button><div class="card-decoration">考</div></article>
           </div>
           <footer class="page-footer"><span>Multiplayer is not connected yet; Social World is currently a solo preview.</span><span>慢慢来 · Take your time</span></footer>
         </section>
@@ -90,6 +93,9 @@
         </section>
         <section class="view club-view" id="club-view" aria-labelledby="club-title">
           <div id="club-store-root"><div class="store-loading" role="status"><span class="loader"></span>Preparing Worldmates Club…</div></div>
+        </section>
+        <section class="view exam-view" id="exam-view" aria-labelledby="exam-title">
+          <div id="exam-center-root"><div class="loading-state" role="status"><span class="loader"></span>Preparing your Exam Center…</div></div>
         </section>
       </main>
     </div>

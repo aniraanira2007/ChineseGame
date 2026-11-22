@@ -11,7 +11,7 @@ import "./hsk.css";
 (() => {
   "use strict";
 
-  const views = { home: document.querySelector("#home-view"), study: document.querySelector("#study-view"), world: document.querySelector("#world-view"), character: document.querySelector("#character-view"), club: document.querySelector("#club-view") };
+  const views = { home: document.querySelector("#home-view"), study: document.querySelector("#study-view"), world: document.querySelector("#world-view"), character: document.querySelector("#character-view"), club: document.querySelector("#club-view"), exam: document.querySelector("#exam-view") };
   const crumb = document.querySelector("#crumb-current");
   const lesson = document.querySelector("#lesson-container");
   let questionIndex = 0;
@@ -27,6 +27,8 @@ import "./hsk.css";
   let pendingSchoolTab = null;
   let clubPending = false;
   let clubReady = false;
+  let examReady = false;
+  let examPending = false;
   let welcomeFlowRoot = null;
   let welcomeFlowStep = "setup";
   let welcomeFlowReplay = false;
@@ -61,6 +63,18 @@ import "./hsk.css";
     if (legacyStudy) pendingSchoolTab = "hsk";
     if (studioPreview) studioPreview.setVisible(next === "character");
     if (next === "character") initializeCharacterStudio();
+    if (next === "exam" && !examReady && !examPending) {
+      examPending = true;
+      import("./examCenter.js").then(({ mountExamCenter }) => {
+        examPending = false;
+        examReady = true;
+        mountExamCenter(document.querySelector("#exam-center-root"));
+      }).catch(error => {
+        examPending = false;
+        const root = document.querySelector("#exam-center-root");
+        if (root) root.innerHTML = `<div class="error-state"><p>Exam Center couldn’t load.</p><p>${escapeHtml(error.message)}</p><button class="retry-btn" type="button" onclick="location.reload()">Try again</button></div>`;
+      });
+    }
     if (next === "club" && !clubReady && !clubPending) {
       clubPending = true;
       import("./store.js").then(({ mountClubStore }) => {
